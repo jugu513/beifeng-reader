@@ -5,6 +5,7 @@ keys.local.txt
 # 构建与检查的中间产物
 北风V0.0.1-alpha.build.html
 tmp/
+dist/
 *.log
 
 # 编辑器与系统
