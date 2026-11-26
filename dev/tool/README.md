@@ -18,11 +18,8 @@ node tool/selfcheck.mjs --quick  # 日常自查，秒级
 | 脚本 | 作用 |
 |---|---|
 | `build.mjs` | 读 `src/`，替换占位符，拼成单文件，写到根目录的母本 txt |
-| `deploy.mjs` | 把母本同步到另外七份（含仓库根发布成品两份） |
+| `deploy.mjs` | 把母本同步到另外五份副本 |
 | `build-check.mjs` | 从 src 构建到临时文件，和母本逐字节比对 |
-| `pack.mjs` | 绿色版打包：产出 `dist/北风V0.0.1-alpha-win.zip`（打前验成品指纹） |
-| `pack-installer.mjs` | 安装包构建：调 `installer.nsi` 产出 `dist/…-Setup.exe`，7z 验尸 |
-| `make-icon.py` | 从模板内联 favicon 生成根目录 `北风.ico`（需 librsvg2-bin + Pillow） |
 
 改代码的正确顺序：编辑 `src/` → `node tool/build.mjs` → `node tool/deploy.mjs`。或者直接跑 `selfcheck`，前两步它会自动做。
 
