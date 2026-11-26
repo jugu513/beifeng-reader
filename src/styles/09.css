@@ -1,0 +1,58 @@
+<style>
+  /* 设置页降噪：概览卡 / 子页下钻 / 分组标题。不新增内联 style；
+     激活态只走 aria-current，不用 .active 类。 */
+  .settings-overview { display:flex; flex-direction:column; gap:12px; padding:4px 2px 16px; }
+  .settings-card { display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 16px; border:1px solid var(--border); border-radius:var(--r-card);
+    background:var(--bg-input); cursor:pointer; transition:border-color .12s, background .12s, box-shadow .12s; }
+  .settings-card:hover { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, var(--bg-input)); box-shadow:var(--shadow-sm); }
+  .settings-card[aria-current="true"] { border-color:var(--accent); }
+  .settings-card__main { min-width:0; }
+  .settings-card__title { font-size:15px; color:var(--text); font-weight:600; }
+  .settings-card__summary { font-size:12px; color:var(--text-dim); margin-top:4px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .settings-card__go { flex:0 0 auto; font-size:12px; color:var(--accent-ink);
+    border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius:var(--r-full);
+    padding:3px 10px; background:color-mix(in srgb, var(--accent) 8%, transparent); }
+  .settings-back { display:inline-flex; align-items:center; gap:6px; margin:2px 2px 12px; padding:6px 10px;
+    border:1px solid var(--border); border-radius:var(--r-xs); background:var(--bg-input);
+    color:var(--text-dim); font-size:13px; cursor:pointer; }
+  .settings-back:hover { color:var(--text); border-color:var(--accent); }
+  .settings-subgroup { margin-top:10px; }
+  .settings-subgroup > .subgroup-title { font-size:11px; font-weight:600; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--text-weak); margin:6px 0 4px; padding-top:8px;
+    border-top:1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+  /* 语音分区可折叠分组（从分支合并：体验更好的折叠 UI）。
+     默认收起（hidden），点标题展开；折叠态挂在 DOM 上（hidden/aria-expanded），不重建面板不丢焦点；
+     引擎显隐由 #settings 上的 data-tts-engine 驱动，面板里改、面板外改、撤销改都能同步；
+     搜索/打印时强制展开全部组，确保被折起的设置项可定位、可打印。 */
+  .tts-cgroup { margin:8px 0; border:1px solid var(--border); border-radius:var(--r-xs); overflow:hidden; }
+  .tts-cgroup__head { display:flex; align-items:center; gap:8px; padding:9px 12px; cursor:pointer;
+    background:var(--bg-input); user-select:none; font-size:13px; color:var(--text); transition:background .12s; }
+  .tts-cgroup__head:hover { background:color-mix(in srgb, var(--accent) 10%, var(--bg-input)); }
+  .tts-cgroup__head:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .tts-cgroup__caret { flex:0 0 auto; font-size:11px; color:var(--text-weak); transition:transform .15s ease; transform:rotate(0deg); }
+  .tts-cgroup__head[aria-expanded="true"] .tts-cgroup__caret { transform:rotate(90deg); }
+  .tts-cgroup__title { font-weight:600; }
+  .tts-cgroup__note { margin-left:auto; font-size:11px; font-weight:400; color:var(--text-weak); }
+  .tts-cgroup__body { padding:4px 12px 10px; border-top:1px solid var(--border); }
+  .tts-cgroup__body[hidden] { display:none; }
+  /* 按当前引擎策略只保留相关的一组：选 MiMo 就隐藏 Edge 组，选 Edge 就隐藏 MiMo 组，
+     离线档隐藏两者；auto（自动）两档都可能用到，故都保留。状态挂在常驻的 #settings 上。 */
+  #settings[data-tts-engine="mimo"] [data-tts-group="edge"],
+  #settings[data-tts-engine="online"] [data-tts-group="mimo"],
+  #settings[data-tts-engine="offline"] [data-tts-group="mimo"],
+  #settings[data-tts-engine="offline"] [data-tts-group="edge"] { display:none !important; }
+  /* 搜索 / 打印时强制展开并放行全部引擎组 */
+  #settings-body.set-searching .tts-cgroup__body,
+  #settings-body.set-searching .tts-cgroup[data-tts-group] { display:block !important; }
+  @media print {
+    #settings-body .tts-cgroup__body,
+    #settings-body .settings-section .tts-cgroup[data-tts-group] { display:block !important; }
+  }
+  /* T7：让 [hidden] 成为确定的隐藏态。置于所有组件样式之后统一兜底——
+     任何带 hidden 属性的元素强制 display:none，不再被 .bf-drawer 等自带 display:flex 的规则盖掉
+     （曾经导致抽屉带 hidden 仍 display:flex 贴在视口外、空 tooltip 常驻）。需要过渡的面板靠
+     openDrawer/closeDrawer 显式增删 hidden 属性（关闭动画结束后才置 hidden=true），不受影响。 */
+  [hidden] { display: none !important; }
+  </style>

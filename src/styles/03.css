@@ -1,0 +1,354 @@
+<style>
+/* ============================================================
+   北风 · 界面与交互升级
+   一、DSL 终端（终端式 REPL 重排为工作区）
+   二、运维台界面（功能与 DOM 契约不变）
+   三、全局交互打磨（焦点环 / 通知 / 诊断卡片）
+   全部走设计令牌，主题切换自动适配
+   ============================================================ */
+
+/* ---------- 三、全局打磨 ---------- */
+/* 键盘焦点环：:focus-visible 只对键盘导航生效，鼠标点击不出现。
+   这里**不设 border-radius** —— outline 天生跟着元素自身圆角走，写上去等于
+   聚焦那一瞬间改控件形状：`.btn` 里有一批 --r-full 胶囊（筛选片、状态胶囊），
+   被这条按到 --r-xs 6px，Tab 一过就"方一下"（--r-full 的 999px 被压成 6px）。
+   同因还有一条住在 :where(...) 全局焦点环里，两处一起清掉，别再留第三处。 */
+.btn:focus-visible, .pane-tab:focus-visible, .diag-lv:focus-visible,
+.book-card:focus-visible, .topbar .btn:focus-visible {
+  outline: 2px solid var(--accent-ink); outline-offset: 2px;
+}
+/* 通知卡：左侧状态色条（沿用现有配色，只加结构线） */
+.noti-card { border-left: 3px solid var(--border-strong); }
+/* .success/.error 两行删除——BF.noti 只发 ok/warn/err/info 四类，
+   这两个类名永远不会挂上（27293-27296 的对外接口为证），是并行事实源的遗骸。 */
+.noti-card.warn    { border-left-color: var(--warning); }
+.noti-card.info    { border-left-color: var(--info); }
+
+/* ---------- 二、运维台（scoped，data-diag-* 委托不变） ---------- */
+#workbench-panel .pk-panel__head { gap: 10px; }
+#workbench-panel .diag-hpill {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+  border-radius: var(--r-full); border: 1px solid var(--border);
+  background: var(--bg-input); font-size: 11px; color: var(--text-dim);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+#workbench-panel .diag-hpill i { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex: 0 0 auto; }
+#workbench-panel .diag-hpill.is-warn i { background: var(--warning); }
+#workbench-panel .diag-hpill.is-bad  i { background: var(--danger); }
+#workbench-panel .diag-hpill.is-bad  { color: var(--danger-ink); border-color: var(--danger-bg); }
+#workbench-panel .diag-hpill.is-warn { color: var(--warning-ink); border-color: var(--warning-bg); }
+#workbench-panel .pk-panel__actions .pk-panel__close { margin-left: 2px; }
+/* 页签：胶囊分段样式（data-diag-tab 委托与 pane-tab__n 徽章保留） */
+#workbench-panel .pane-tabs {
+  gap: 4px; padding: 8px var(--sp-4) 0; border-bottom: 1px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+#workbench-panel .pane-tabs::-webkit-scrollbar { display: none; }
+#workbench-panel .pane-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px 9px; border: 0; border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: transparent; color: var(--text-weak); cursor: pointer;
+  font-size: 12.5px; white-space: nowrap; position: relative;
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+#workbench-panel .pane-tab svg { width: 14px; height: 14px; opacity: .85; }
+#workbench-panel .pane-tab:hover { color: var(--text); background: var(--bg-input); }
+#workbench-panel .pane-tab[aria-selected="true"] { color: var(--accent-ink); font-weight: 600; }
+#workbench-panel .pane-tab[aria-selected="true"]::after {
+  content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 2px;
+  border-radius: 2px 2px 0 0; background: var(--accent);
+}
+#workbench-panel .pane-tab .pane-tab__n {
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-full);
+  background: var(--danger-bg); color: var(--danger-ink);
+  font-size: 10.5px; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums;
+}
+/* 底部工具条：图标 + 微交互 */
+#workbench-panel .pk-panel__foot { gap: 8px; }
+#workbench-panel .pk-panel__foot .btn { display: inline-flex; align-items: center; gap: 6px; }
+#workbench-panel .pk-panel__foot .btn svg { width: 13px; height: 13px; opacity: .8; }
+#workbench-panel .pk-panel__body .pane-card { transition: border-color var(--dur-fast), transform var(--dur-fast); }
+#workbench-panel .pk-panel__body .pane-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+#workbench-panel .pk-panel__body .pane-row { transition: background var(--dur-fast); border-radius: var(--r-xs); }
+#workbench-panel .pk-panel__body .pane-row:hover { background: var(--bg-input); }
+
+/* ---------- 一、DSL 终端：终端 ----------
+   形态取自两类真实终端：窗口与输出流学 Windows 命令提示符（黑底、
+   版本横幅、纯文本流、标题栏 + 文字菜单），脚本编辑器学 Python IDLE
+   （白底等宽、菜单条、语法色）。实现手法是在窗口作用域内重定义设计
+   令牌：同元素自定义属性优先于继承，故控制台恒暗、编辑器恒白，
+   都不污染全站主题，也不需要额外的清理代码。 */
+
+#dsl-console {
+  /* ===== 命令提示符色板（固定，不随主题漂移） ===== */
+  --bg:           #0c0c0c;
+  --bg-panel:     #0c0c0c;
+  --bg-input:     #0c0c0c;
+  --text:         #cccccc;
+  --text-dim:     #a9a9a9;
+  --text-weak:    #828282;
+  --border:       #2b2b2b;
+  --border-strong:#3d3d3d;
+  --accent:       #3b78ff;
+  --accent-ink:   #75b9ff;
+  --brand-fg:     #ffffff;
+  --success:      #16c60c; --success-bg: rgba(22,198,12,.12);
+  --warning:      #f9f1a5; --warning-bg: rgba(249,241,165,.12);
+  --danger:       #e74856; --danger-bg:  rgba(231,72,86,.14);
+  --info:         #61d6d6; --info-bg:    rgba(97,214,214,.12);
+  /* 墨档别名一律 var(本体)：这里再抄一遍字面色，就等于同一语义两套真源——
+     上面改了 --warning，.noti-card.warn 的左边条（用 --warning-ink）不动。 */
+  --success-ink: var(--success); --warning-ink: var(--warning); --danger-ink: var(--danger);
+
+  --r-sm: 2px; --r-xs: 2px; --r-card: 3px; --r-panel: 8px; --r-full: 2px;
+  --r-btn: 0; --r-md: 3px;
+
+  --mono: "Cascadia Code", "Cascadia Mono", Consolas, ui-monospace,
+          "Noto Sans Mono CJK SC", "Sarasa Mono SC", "Liberation Mono", monospace;
+  --sans: var(--mono);
+  --serif: var(--mono);
+
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -48%);
+  width: min(1120px, 96vw); height: min(800px, 92vh); z-index: var(--z-modal);
+  opacity: 0; visibility: hidden; overflow: hidden;
+  background: var(--bg); border: 1px solid #4d4d4d; border-radius: 8px;
+  box-shadow: var(--shadow-lg), var(--shadow-md);
+  font-family: var(--mono);
+  transition: opacity var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out), visibility var(--dur-base);
+  scrollbar-color: #4d4d4d var(--bg); scrollbar-width: thin;
+}
+#dsl-console.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); }
+/* 整屏态（双击标题栏切换）：占满视口、去掉圆角与边框。
+   必须排在 .open 之后 —— 选择器特异度相同（id+class），靠书写顺序
+   压过 .open 的居中 transform；写在前面会输掉这一仗。 */
+#dsl-console.mode-max {
+  width: 100vw; height: 100vh; left: 0; top: 0; transform: none;
+  border-radius: 0; border-width: 0;
+}
+/* 拖拽中关掉过渡：每帧位移都被缓动的话，窗口会拖出一串残影 */
+#dsl-console.dwb-dragging { transition: none; }
+
+/* 滚动条：细窄灰块 */
+#dsl-console ::-webkit-scrollbar { width: 11px; height: 11px; }
+#dsl-console ::-webkit-scrollbar-track { background: transparent; }
+#dsl-console ::-webkit-scrollbar-thumb {
+  background: #4d4d4d; border: 3px solid var(--bg); border-radius: 6px;
+}
+#dsl-console ::-webkit-scrollbar-thumb:hover { background: #6b6b6b; }
+
+/* 标题栏右侧的动作就是几个文字菜单：无边框无底色，悬停浮一层灰。
+   刻意不改 padding 与 font-size —— 既有 32px 触摸目标靠伪元素按元素高度
+   纵向扩张热区，改动尺寸会让扩张量失配。 */
+#dsl-console .btn {
+  background: transparent; color: var(--text-dim);
+  border: 0; border-radius: 0;
+  font-family: var(--mono); letter-spacing: .02em;
+}
+#dsl-console .btn:hover { color: #f2f2f2; background: #353535; }
+#dsl-console .btn.primary { color: var(--text-dim); font-weight: 600; background: transparent; }
+#dsl-console .btn.primary:hover { background: #353535; opacity: 1; }
+/* 关闭键 = Windows 窗口按钮：悬停整块翻红 #C42B1C、白色 ✕ */
+#dsl-console .pk-panel__close { color: var(--text-weak); border-radius: 0; }
+#dsl-console .pk-panel__close:hover { color: #ffffff; background: #c42b1c; }
+
+/* Self-XSS 首开横幅：左侧一道红条 */
+#dsl-console .dwb-selfxss {
+  flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-3);
+  padding: 9px var(--sp-4); background: var(--danger-bg);
+  border-bottom: 1px solid var(--border); border-left: 3px solid var(--danger);
+  color: var(--danger-ink); font-size: 12px; line-height: 1.55;
+}
+#dsl-console .dwb-selfxss.hidden { display: none; }
+#dsl-console .dwb-selfxss__t { flex: 1 1 auto; min-width: 0; }
+#dsl-console .dwb-selfxss__t b { font-weight: 700; color: var(--danger); }
+#dsl-console .dwb-selfxss .btn { flex: 0 0 auto; }
+
+/* ---- 标题栏：命令提示符的窗口标题条 ----
+   黑底同色、图标 + 标题靠左，菜单文字与关闭键靠右；没有副标题位。
+   标题栏是窗口把手：整条可拖（空白处与图标/标题都算），但拖动不抢
+   文字选择、不碰按钮与权限徽章的热区（touch-action:none 让指针事件
+   在触摸设备上不被页面滚动吃掉）。 */
+.dwb-head {
+  display: flex; align-items: stretch; gap: 0; padding: 0; height: 34px;
+  flex: 0 0 auto; background: var(--bg);
+  cursor: default; user-select: none; -webkit-user-select: none; touch-action: none;
+}
+.dwb-head .dwb-logo {
+  display: flex; align-items: center; padding: 0 2px 0 12px;
+  color: var(--text-dim); flex: 0 0 auto;
+}
+.dwb-head .dwb-logo svg { width: 12px; height: 12px; }
+.dwb-head .dwb-title {
+  display: flex; align-items: center; padding: 0 10px 0 8px;
+  font-size: 12px; font-weight: 400; letter-spacing: .02em;
+  color: var(--text); white-space: nowrap;
+}
+.dwb-head .pk-panel__actions { margin-left: auto; display: flex; align-items: stretch; gap: 0; flex: 0 0 auto; }
+.dwb-head .pk-panel__actions .btn { padding: 0 14px; height: auto; }
+/* 权限档位：标题栏上的一行灰字 + 状态点，不是徽章 */
+.dwb-perm {
+  display: inline-flex; align-items: center; gap: 6px; padding: 0 10px;
+  font-size: 11px; font-family: var(--mono);
+  color: var(--text-weak); white-space: nowrap; cursor: pointer;
+  border: 1px solid transparent; border-radius: 3px;
+}
+.dwb-perm:hover { border-color: var(--border-strong); color: var(--text); }
+.dwb-perm:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dwb-perm i { width: 6px; height: 6px; border-radius: 1px; background: var(--text-weak); flex: 0 0 auto; }
+.dwb-perm.is-data { color: var(--warning-ink); }
+.dwb-perm.is-data i { background: var(--warning); }
+.dwb-perm.dwb-ai-off { color: var(--text-weak); }
+.dwb-perm.dwb-ai-off i { background: var(--border-strong); }
+.dwb-perm.is-full { color: var(--danger-ink); }
+.dwb-perm.is-full i { background: var(--danger); }
+/* 双模式：唯一状态源是面板上的 mode-edit 类（标题栏「终端/编辑器」按钮的
+   pressed 态由它派生）。终端模式 = 纯命令行流：编辑器面板与运行/保存退场；
+   编辑器模式：命令行退场，脚本只能经「运行」按钮或 Ctrl+Enter 执行。 */
+.dwb-head .dwb-mode { padding: 0 12px; }
+.dwb-head .dwb-mode[aria-pressed="true"] { color: #f2f2f2; background: #353535; }
+#dsl-console:not(.mode-edit) .dwb-editor,
+#dsl-console:not(.mode-edit) [data-dsl-run],
+#dsl-console:not(.mode-edit) [data-dsl-save] { display: none; }
+#dsl-console.mode-edit .dwb-repl { display: none; }
+
+/* ---- 主体：上编辑器（IDLE）下控制台（cmd） ---- */
+.dwb-body { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.dwb-main { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; }
+
+/* ---- 脚本编辑器：Python IDLE 交互窗口形态 ----
+   白底黑字等宽、顶部一条浅灰菜单条、底部一条浅灰状态条；
+   没有行号栏、没有当前行高亮——IDLE 都没有。
+   令牌在本作用域整体翻白，作用域外（控制台）仍是 cmd 黑。 */
+.dwb-editor {
+  --bg: #ffffff; --bg-input: #ffffff;
+  --text: #000000; --text-dim: #3f3f3f; --text-weak: #767676;
+  --border: #dcdcdc; --border-strong: #b5b5b5;
+  display: flex; flex-direction: column; min-height: 0;
+  border-bottom: 1px solid #2b2b2b; background: #ffffff;
+}
+.dwb-editor__bar {
+  display: flex; align-items: center; gap: 5px; padding: 0 8px; height: 30px;
+  flex: 0 0 auto; background: #f0f0f0; border-bottom: 1px solid #dcdcdc;
+  overflow-x: auto; scrollbar-width: none;
+}
+.dwb-editor__bar::-webkit-scrollbar { display: none; }
+.dwb-editor__bar input.dwb-name {
+  width: 168px; flex: 0 0 auto; padding: 4px 6px; font-size: 12px; font-weight: 600;
+  color: #000000; background: transparent;
+  border: 1px solid transparent; border-radius: 2px; font-family: var(--mono);
+}
+.dwb-editor__bar input.dwb-name:hover { border-color: #d0d0d0; }
+.dwb-editor__bar input.dwb-name:focus { border-color: #0078d4; background: #ffffff; outline: none; }
+.dwb-editor__bar .dwb-spacer { flex: 1 1 auto; }
+
+/* 多行缓冲：默认只露约 4 行，聚焦时展开——:focus-within 天然吻合「用到才展开」 */
+.dwb-code {
+  position: relative; flex: 0 0 auto; display: flex; min-height: 0; height: 92px;
+  transition: height .18s ease; background: #ffffff;
+}
+.dwb-editor:focus-within .dwb-code { height: 38vh; }
+body.reduce-motion .dwb-code { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .dwb-code { transition: none; }
+}
+.dwb-codewrap { position: relative; flex: 1 1 auto; min-width: 0; }
+.dwb-hl, .dwb-ta {
+  margin: 0; padding: 10px 12px; border: 0;
+  font-family: var(--mono); font-size: 12px; line-height: 1.65; tab-size: 2;
+  white-space: pre; word-wrap: normal; overflow-wrap: normal;
+}
+.dwb-hl { position: absolute; inset: 0; overflow: auto; pointer-events: none; color: #000000; background: transparent; letter-spacing: normal; }
+/* 跳转到错误行后的一次性高亮条（视觉标记，2s 后移除；刻意不引入行号 gutter） */
+.dwb-line-hi { position: absolute; left: 0; right: 0; background: rgba(255, 221, 87, .28); border-radius: 2px; pointer-events: none; z-index: 1; }
+.dwb-hl code { font: inherit; display: block; width: max-content; min-width: 100%; }
+.dwb-ta {
+  position: absolute; inset: 0; width: 100%; height: 100%; resize: none; overflow: auto;
+  background: transparent; color: transparent; caret-color: #000000; outline: none;
+  -webkit-text-fill-color: transparent;
+}
+.dwb-ta::placeholder { color: #9a9a9a; -webkit-text-fill-color: #9a9a9a; font-style: normal; font-size: 11.5px; }
+.dwb-ta::selection { background: #add6ff; -webkit-text-fill-color: transparent; }
+/* 语法配色：IDLE 默认方案（固定色值，编辑器不随主题换语法色） */
+.tk-kw  { color: #ff7700; font-weight: 600; }   /* IDLE 关键字橙 */
+.tk-str { color: #008000; }                     /* IDLE 字符串绿 */
+.tk-num { color: #008080; }                     /* IDLE 数字青 */
+.tk-com { color: #dd0000; font-style: italic; } /* IDLE 注释红 */
+.tk-api { color: #800080; }                     /* IDLE 内建紫 */
+.tk-ctx { color: #0000ff; font-weight: 600; }   /* IDLE 名称蓝 */
+/* 状态条：IDLE 没有状态栏，这里只留一行浅灰小字（行列/字数/校验） */
+.dwb-status {
+  display: flex; align-items: center; gap: 12px; padding: 2px 10px; flex: 0 0 auto;
+  font-size: 10.5px; color: #6f6f6f; border-top: 1px solid #dcdcdc;
+  background: #f0f0f0; font-variant-numeric: tabular-nums; overflow: hidden; white-space: nowrap;
+}
+.dwb-status .dwb-ok { color: #008000; }
+.dwb-status .dwb-bad { color: #c62b2b; }
+/* 校验失败的可点条：状态条里长得和旁边那段红字一样，只是能点
+   （点了把光标丢到出错那一行行首），所以不吃 .btn 的盒模型。 */
+.dwb-status .dwb-errjump {
+  border: 0; background: none; color: #c62b2b; font: inherit;
+  cursor: pointer; padding: 0; text-decoration: underline;
+}
+.dwb-status b { color: #3f3f3f; font-weight: 600; }
+
+/* ---- 控制台：cmd 的滚动输出流 + 命令行 ---- */
+.dwb-console { display: flex; flex-direction: column; min-height: 0; background: #0c0c0c; }
+.dwb-console__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--bg); }
+/* 版本横幅：cmd 开屏那两行的位置，静态留在滚动区最顶端 */
+.dwb-banner {
+  flex: 0 0 auto; padding: 10px 12px 0; color: var(--text-dim);
+  font-family: var(--mono); font-size: 14px; line-height: 1.45; white-space: pre-line;
+}
+.dwb-log {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 12px; display: flex; flex-direction: column;
+  font-family: var(--mono); font-size: 14px; line-height: 1.45; user-select: text;
+  font-variant-numeric: tabular-nums;
+}
+/* 输出行：纯文本流——没有时刻表、没有图标列，cmd 的输出从来只有字。
+   回显与输出同色同权重：cmd 不会给敲过的命令加粗。 */
+.dwb-line + .dwb-line { margin-top: 1px; }
+.dwb-line__m { white-space: pre-wrap; word-break: break-word; }
+.dwb-line.is-in  .dwb-line__m { color: var(--text); }
+.dwb-line.is-ok  .dwb-line__m { color: var(--success-ink); }
+.dwb-line.is-err .dwb-line__m { color: var(--danger-ink); }
+.dwb-line.is-warn .dwb-line__m { color: var(--warning-ink); }
+.dwb-line.is-info .dwb-line__m { color: var(--text-dim); }
+
+/* 命令行：cmd 的输入行不是「控件」，它就是文本流的最后一行——
+   提示符与输入之间不留缝（C:\beifeng>dir 是贴着的），不画框、不发光、
+   没有占位灰字（cmd 什么都不提示，横幅里已经写了 help）。
+   光标做成实心块（cmd 传统造型），不支持 caret-shape 的浏览器自动落回细线。 */
+.dwb-repl {
+  display: flex; align-items: center; gap: 0; padding: 4px 12px 8px; flex: 0 0 auto;
+  background: var(--bg);
+}
+.dwb-repl .dwb-ps1 {
+  color: var(--text); font-family: var(--mono); font-size: 14px;
+  flex: 0 0 auto; white-space: pre;
+}
+.dwb-repl input {
+  flex: 1 1 auto; min-width: 0; font-family: var(--mono); font-size: 14px; color: #f2f2f2;
+  background: transparent; border: 0;
+  border-radius: 0; padding: 4px 0 4px 1px; caret-color: #cccccc;
+}
+@supports (caret-shape: block) {
+  .dwb-repl input { caret-shape: block; }
+}
+.dwb-repl input:focus-visible { outline: 1px solid #75b9ff; outline-offset: 2px; }
+.dwb-repl input::placeholder { color: transparent; }
+
+/* ---- 窄屏适配 ---- */
+@media (max-width: 880px) {
+  #dsl-console { width: 97vw; height: 94dvh; border-radius: 4px; }
+  .dwb-editor:focus-within .dwb-code { height: 30vh; }
+  .dwb-editor__bar input.dwb-name { width: 120px; }
+  .dwb-head .dwb-perm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #dsl-console { transition: opacity var(--dur-base), visibility var(--dur-base); transform: translate(-50%, -50%); }
+  #dsl-console.open { transform: translate(-50%, -50%); }
+}
+body.reduce-motion #dsl-console { transition: opacity var(--dur-base), visibility var(--dur-base); transform: translate(-50%, -50%); }
+body.reduce-motion #dsl-console.open { transform: translate(-50%, -50%); }
+</style>

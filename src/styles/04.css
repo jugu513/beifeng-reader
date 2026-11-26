@@ -1,0 +1,61 @@
+<style>
+/* ===== 增强层 V4 样式 ===== */
+
+/* ===== 阅读热力图 ===== */
+.v4-heat{display:flex;gap:3px;align-items:flex-end;user-select:none}
+.v4-heat-col{display:flex;flex-direction:column;gap:3px}
+.v4-heat i{width:9px;height:9px;border-radius:2px;background:var(--bg-input);display:block;cursor:pointer}
+.v4-heat i.l1{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.v4-heat i.l2{background:color-mix(in srgb,var(--accent) 42%,transparent)}
+.v4-heat i.l3{background:color-mix(in srgb,var(--accent) 65%,transparent)}
+.v4-heat i.l4{background:var(--accent)}
+.v4-heat-tip{font-size:11px;color:var(--text-weak);margin-top:6px;font-variant-numeric:tabular-nums}
+/* 工作台「近 14 天」柱条。原状：.stat-days .d 一条规则都没有，
+   计算样式 background 为透明、宽度由 flex 拉伸——整条 14 天渲染成看不见的一片。
+   四级色阶与 12 周热力图共用 --accent 混叠阶梯，保证跨皮肤都读得出差别
+   （高度之外再给一条颜色通道，色觉与键盘用户都不止靠高度）。 */
+.stat-days .d { flex:0 0 14px; width:14px; border-radius:2px 2px 0 0; background:var(--bg-input); }
+.stat-days .d.lv1 { background:color-mix(in srgb,var(--accent) 22%,transparent); }
+.stat-days .d.lv2 { background:color-mix(in srgb,var(--accent) 42%,transparent); }
+.stat-days .d.lv3 { background:color-mix(in srgb,var(--accent) 65%,transparent); }
+.stat-days .d.lv4 { background:var(--accent); }
+/* 统计热力窗口切换按钮激活态（aria-pressed 驱动，不用 active 类）+ 90 天密度档 */
+.stat-range-btn[aria-pressed="true"] { color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.stat-days.is-dense .d { flex: 1 1 0; width: auto; min-width: 2px; }
+/* 统计栏控件行 / 口径说明（收编行内 style，给内联样式留余量） */
+.stat-ctrl { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 10px 0 6px; }
+.stat-ctrl__btns { display: flex; gap: 4px; }
+.stat-scope { font-size: 11px; color: var(--text-weak); margin-top: 8px; line-height: 1.6; }
+/* 专注栏「今日完成 N 轮」统计行 */
+.focus-cycles { font-size: 12px; color: var(--text-weak); margin-top: 10px; text-align: center; }
+/* ===== 书卡进度百分比 ===== */
+.book-card .info{position:relative}
+.v4-pct{position:absolute;right:10px;bottom:8px;font-size:10px;font-family:var(--mono);
+  color:var(--text-weak);font-variant-numeric:tabular-nums;pointer-events:none}
+.book-card:hover .v4-pct{color:var(--accent-ink)}
+/* ===== 阅读底栏：全书进度芯片 ===== */
+.v4-chip{font-family:var(--mono);font-size:11px;color:var(--text-weak);
+  white-space:nowrap;font-variant-numeric:tabular-nums;cursor:default}
+.v4-chip b{color:var(--text-dim);font-weight:600}
+/* ===== 快捷键速查面板 ===== */
+.v4-cheat-mask{position:fixed;inset:0;background:var(--mask-bg);z-index:calc(var(--z-modal) + 2);
+  display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;
+  transition:opacity var(--dur-base),visibility var(--dur-base)}
+.v4-cheat-mask.show{opacity:1;visibility:visible}
+.v4-cheat-box{width:min(640px,92vw);max-height:76vh;overflow-y:auto;background:var(--bg-panel);
+  border:1px solid var(--border);border-radius:var(--r-panel);box-shadow:var(--shadow-lg);
+  padding:var(--sp-5);transform:translateY(8px) scale(.98);transition:transform var(--dur-base) var(--ease-out)}
+.v4-cheat-mask.show .v4-cheat-box{transform:none}
+.v4-cheat-box h3{font-family:var(--serif);font-size:17px;margin-bottom:4px}
+.v4-cheat-sub{font-size:11.5px;color:var(--text-weak);margin-bottom:var(--sp-4)}
+.v4-cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px}
+@media (max-width:560px){.v4-cheat-grid{grid-template-columns:1fr}}
+.v4-cheat-g{font-size:11px;font-weight:600;color:var(--accent-ink);letter-spacing:.08em;
+  margin:var(--sp-3) 0 var(--sp-1);grid-column:1/-1}
+.v4-cheat-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:5px 0;border-bottom:1px dashed color-mix(in srgb,var(--border) 70%,transparent);
+  font-size:12.5px;color:var(--text-dim)}
+.v4-cheat-row kbd{white-space:nowrap;font-size:10.5px}
+body.reduce-motion .v4-cheat-box{transition:none}
+
+</style>

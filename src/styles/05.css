@@ -1,0 +1,89 @@
+<style>
+/* ============================================================
+   黑白简约模式（实验 · bwMode）· 结构层
+   ------------------------------------------------------------
+   机制：theme.apply 末尾把 BF.BW_*_TOKENS 以 body 内联令牌注入
+   （纯黑白灰，零色相），并落 body.bw 类；本块只做令牌管不到的
+   结构层——零圆角、零模糊、零色偏、灰阶发丝线分层。
+   功能 DOM/事件零改动；关闭开关即整块失效，原样还原。
+   ============================================================ */
+
+/* ---- 纹理：噪点底纹关掉，氛围动画整体灰度降调 ---- */
+body.bw::before { display: none; }
+body.bw.anim-mist::after,
+body.bw.anim-aurora::after,
+body.bw.anim-ember::after { filter: grayscale(1); opacity: .3; }
+
+/* ---- 发丝线族走灰度 ---- */
+body.bw {
+  --hairline: color-mix(in srgb, var(--text) 15%, transparent);
+  --track-1: color-mix(in srgb, var(--text) 12%, transparent);
+  --accent-soft: color-mix(in srgb, var(--text) 10%, transparent);
+  --accent-line: color-mix(in srgb, var(--text) 45%, transparent);
+}
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  body.bw { --hairline: rgba(128,128,128,.2); --track-1: rgba(128,128,128,.16);
+    --accent-soft: rgba(128,128,128,.12); --accent-line: rgba(128,128,128,.45); }
+}
+
+/* ---- 按钮：主 CTA 去光晕；危险钮加粗 ---- */
+body.bw .btn.primary, body.bw .btn.primary:hover { box-shadow: none; }
+body.bw .btn.danger { font-weight: 700; }
+
+/* ---- 书封：生成式彩封整体灰度 ---- */
+body.bw .cover { filter: grayscale(1) contrast(1.06); }
+
+/* ---- 选中工具条：反相 ---- */
+body.bw .selbar { background: var(--text); border-color: var(--text); box-shadow: none; }
+body.bw .selbar button,
+body.bw .selbar button.selbar-ai { color: var(--bg); }
+body.bw .selbar button:hover { background: color-mix(in srgb, var(--bg) 20%, transparent); color: var(--bg); }
+body.bw .selbar button.selbar-ai { border-left-color: color-mix(in srgb, var(--bg) 40%, transparent); }
+body.bw .selbar .selbar-prev { color: var(--bg); }
+
+/* ---- 通知：错误卡反相，警告加粗左边条 ---- */
+body.bw .noti-card { border: 1px solid var(--border); border-left: 3px solid var(--text-weak); box-shadow: none; }
+body.bw .noti-card.ok,
+body.bw .noti-card.info { border-left-color: var(--text-weak); }
+body.bw .noti-card.warn { border-left-color: var(--text); border-left-width: 4px; }
+body.bw .noti-card.err { background: var(--text); color: var(--bg); border-color: var(--text); }
+body.bw .noti-card.err .n-act,
+body.bw .noti-card.err .n-close { color: var(--bg); }
+body.bw .noti-card.err .n-count { background: color-mix(in srgb, var(--bg) 25%, transparent); color: var(--bg); }
+
+/* ---- 浮层统一去投影 ---- */
+body.bw .pk-panel,
+body.bw .modal-box,
+body.bw .bf-more-menu,
+body.bw .v4-cheat-box,
+body.bw .mr-toc,
+body.bw .mr-typeset,
+body.bw .resume-tip,
+body.bw .back-top,
+body.bw .tts-bar { box-shadow: none; }
+body.bw .modal-box { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-panel); }
+body.bw .bf-sel-pop { filter: none; }
+
+/* ---- 阅读面：色温叠加与暖档滤镜中性化 ---- */
+body.bw #reader-wrap { background-image: none !important; }
+body.bw #page-reader[data-rf="sepia"] #reader-wrap,
+body.bw #page-reader[data-rf="paper"] #reader-wrap { background: var(--bg-reader) !important; }
+body.bw #page-reader[data-rf="sepia"] .reader-main,
+body.bw #page-reader[data-rf="sepia"] .reader-main p,
+body.bw #page-reader[data-rf="sepia"] .reader-main h2,
+body.bw #page-reader[data-rf="paper"] .reader-main,
+body.bw #page-reader[data-rf="paper"] .reader-main p,
+body.bw #page-reader[data-rf="paper"] .reader-main h2 { color: var(--text); }
+
+/* ---- DSL 编辑器：语法色整体灰度 ---- */
+body.bw .dwb-hl { filter: grayscale(1); }
+
+/* ---- 排版微调 ---- */
+body.bw .section-title { font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--text-weak); }
+body.bw .topbar .brand { letter-spacing: 4px; }
+body.bw kbd { box-shadow: none; background: var(--bg-input); border-color: var(--text-weak); }
+
+/* ---- 滚动条：灰度细条 ---- */
+body.bw ::-webkit-scrollbar-thumb { background: var(--text-weak); }
+body.bw ::-webkit-scrollbar-track { background: transparent; }
+</style>

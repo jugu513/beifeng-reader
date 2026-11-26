@@ -1,0 +1,14 @@
+# 运行时与本地凭据（永不入库）
+keys.local.txt
+*.local.txt
+
+# 构建与检查的中间产物
+北风V0.0.1-alpha.build.html
+tmp/
+*.log
+
+# 编辑器与系统
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db

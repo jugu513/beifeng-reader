@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 只收「不该存在的通道」：插件/内嵌框架/改基址/表单外发。
+     不写 default-src —— 正文图片、AI 端点、本机转发器、blob: Worker 都是合法出口，
+     收紧它们会把功能打死， XSS 兜底另有 BF.dom.sanitize 与 CSP 两道。
+     script-src 必须带 unsafe-eval：DSL 终端用 new Function 跑脚本，
+     只留 unsafe-inline 会把整条脚本通道堵死（弹 EvalError）。
+     worker-src 必须显式给 blob:：大书分章/搜索/压缩的线程池由 blob URL 建 Worker，
+     不写它就回落到 script-src，Worker 一律被拒。 -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:; style-src 'unsafe-inline'">
+<title>北风 V0.0.1-alpha</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%0A%3Crect x='4' y='4' width='56' height='56' rx='13' fill='%23b23a2e'/%3E%0A%3Cpath d='M16 25h20c5 0 8-2.5 8-6s-3-6-7-6' fill='none' stroke='%23fff' stroke-width='4.5' stroke-linecap='round'/%3E%0A%3Cpath d='M16 33h27c5 0 8 2.5 8 6.5s-3 6.5-7 6.5' fill='none' stroke='%23fff' stroke-width='4.5' stroke-linecap='round'/%3E%0A%3Cpath d='M16 41h14' fill='none' stroke='%23fff' stroke-width='4.5' stroke-linecap='round' opacity='.7'/%3E%0A%3C/svg%3E">
+
+{{STYLE_01}}
+{{STYLE_02}}
+{{STYLE_03}}
+
+{{STYLE_04}}
+{{STYLE_05}}
+{{STYLE_06}}
+{{STYLE_07}}
+</head><body style="">
+<div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
+  <div class="boot-splash__brand">北风</div>
+  <div class="boot-splash__sub">正在启动阅读环境…</div>
+  <div class="boot-splash__bar"><span></span></div>
+</div>
+{{STYLE_08}}
+<!-- ===== 灰阶侧栏（黑白简约模式的新界面外壳）=====
+     仅 body.bw 时显示；所有入口走 BF.commands 总线调度既有功能，
+     不复制任何业务逻辑——功能面与原界面 100% 同源。 -->
+<aside id="bw-nav" aria-label="主导航">
+  <div class="bw-brand">北风</div>
+  <div class="bw-group">
+    <div class="bw-group-t">阅读</div>
+    <button data-bwcmd="nav.home" data-short="首">首页</button>
+    <button data-bwcmd="nav.shelf" data-short="架">书架</button>
+    <button data-bwcmd="read.continue" data-short="续">继续阅读</button>
+    <button data-bwcmd="import.txt" data-short="入">导入</button>
+  </div>
+  <div class="bw-group">
+    <div class="bw-group-t">工具</div>
+    <button data-bwcmd="ws.focus" data-short="番">番茄钟</button>
+    <button data-bwcmd="ws.noise" data-short="音">白噪音</button>
+    <button data-bwcmd="ai.center" data-short="研">AI 研读</button>
+    <button data-bwcmd="stats.open" data-short="统">统计</button>
+  </div>
+  <div class="bw-group">
+    <div class="bw-group-t">系统</div>
+    <button data-bwcmd="noti.center" data-short="讯">通知中心</button>
+    <button data-bwcmd="trash.list" data-short="废">回收站</button>
+    <button data-bwcmd="wb.open" data-short="台">工作台</button>
+    <button data-bwcmd="nav.help" data-short="册">使用手册</button>
+    <button data-bwcmd="nav.settings" data-short="设">设置</button>
+  </div>
+  <button class="bw-exit" data-bw-exit title="回到标准界面" aria-label="退出黑白简约，回到标准界面">退出黑白 ›</button>
+  <div class="bw-foot">灰阶 · V0.0.1-alpha</div>
+</aside>
+<div id="app">
+
+<!-- ===== 环境告警条 =====
+     只在真的处于受限环境（file:// 打开 / 没有 IndexedDB）时出现。
+     没有关闭按钮，也没有「不再提示」：这条说的不是意见，是用户的数据会丢。 -->
+<div class="env-warn" id="env-warn" role="status" hidden></div>
+
+<!-- ===== 首启引导（最简版）=====
+     仅在首次启动（K.ONBOARDED 未置位）显示，点「不再显示」即置位、永不再现。
+     三步条：导入 → 调排版 → 开朗读；每步跳到对应入口。固定浮条，不挤占页面布局。 -->
+<div class="onboard-bar" id="onboard-bar" hidden="">
+  <div class="onboard-bar__inner">
+    <span class="onboard-bar__title">新手上路</span>
+    <span class="onboard-bar__steps">
+      <button class="onboard-step" data-onboard="import" type="button"><span class="onboard-step__n">1</span>导入书籍</button>
+      <span class="onboard-step__arrow" aria-hidden="true">→</span>
+      <button class="onboard-step" data-onboard="layout" type="button"><span class="onboard-step__n">2</span>调整排版</button>
+      <span class="onboard-step__arrow" aria-hidden="true">→</span>
+      <button class="onboard-step" data-onboard="tts" type="button"><span class="onboard-step__n">3</span>开启朗读</button>
+    </span>
+    <button class="onboard-bar__close" data-onboard-close="" type="button" aria-label="不再显示引导">不再显示</button>
+  </div>
+</div>
+
+<!-- ===== HOME ===== -->
+<div class="page" id="page-home" role="main" hidden="">
+  <h2 class="sr-only">北风 · 首页</h2>
+  <div class="topbar">
+    <span class="brand">北风</span>
+    <span class="ver" id="topbar-ver">V0.0.1-alpha</span>
+    <span class="status-dot" id="status-dot"></span>
+    <span class="tts-status" id="tts-status-label" aria-live="polite">语音就绪</span>
+    <button class="focus-chip" data-focus-chip="" hidden="" title="番茄钟运行中，点击打开面板"><span class="focus-chip__time">25:00</span><span class="focus-chip__label">休息中</span><span class="focus-chip__bar" style="width:100%"></span></button>    <span class="topbar-spacer"></span>
+    <button class="btn btn-sm btn-icon noti-bell" data-noti-bell="" title="通知中心" aria-label="通知中心"><span class="noti-bell-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="noti-bell__n">3</span></button>
+    <button class="btn btn-sm btn-icon" data-more-menu="home" title="更多" aria-label="更多操作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle></svg>
+    </button>
+  </div>
+  <div class="home-body">
+    <div class="home-left">
+      <div>
+        <div class="clock" id="clock"><span>2</span><span>1</span><span>:</span><span>0</span><span class="tick">8</span><span>:</span><span class="tick">3</span><span class="tick">9</span></div>
+        <div class="clock-date" id="clock-date">2026年10月4日 星期日</div>
+      </div>
+      <div class="home-actions">
+        <button class="btn primary" data-nav="bookshelf">进入书架</button>
+        <button class="btn" id="btn-continue" data-continue="" disabled="">继续上次</button>
+      </div>
+      <div class="resume-hint" id="resume-hint" data-resume-tts="">朗读会话未完成，点击从断点续播</div>
+    </div>
+    <div class="home-right">
+      <div>
+        <div class="section-title">最近在读</div>
+        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import="">导入 TXT</button></div></div>
+      </div>
+      <div>
+        <div class="daily-quote" id="daily-quote">“读书破万卷，下笔如有神。”<div class="source">—— 杜甫</div></div>
+        <div class="home-stats" id="home-stats"><span><span class="num" id="hs-books">0</span>书籍</span><span><span class="num" id="hs-words">0</span>总字数</span><span><span class="num" id="hs-today">0</span>分钟今天</span><span><span class="num" id="hs-streak">0</span>天连续</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ===== 曲径（实验界面 · qjMode）=====
+     多驿站式界面：顶驿道把五座站台串在一条路上（今 / 架 / 迹 / 坊 / 笺），
+     自带路由与切换动画；开书后进入旧阅读器，返回即回到曲径。
+     唯一出口在右上「出口」（打开设置 → 实验），关掉开关整体还原。
+     所有功能走 BF.commands / BF.app / BF.notes 总线，功能面与旧界面完全同源。 -->
+<div class="page qj-page" id="page-qj" role="main" hidden="">
+  <div class="qj-shell">
+    <header class="qj-mast">
+      <div class="qj-brand"><span class="qj-brand__ch">曲径</span><i>北风 · 沉浸式导航</i></div>
+      <nav class="qj-path" id="qj-path" aria-label="曲径驿道"></nav>
+      <!-- §4.5.2 曲径里程尺：站列表顶部横向刻度尺，走过的填色，aria-hidden -->
+      <div class="qj-mileage" id="qj-mileage" aria-hidden="true">
+        <div class="qj-mileage__track"><div class="qj-mileage__fill" id="qj-mileage-fill"></div></div>
+        <div class="qj-mileage__labels" id="qj-mileage-labels"></div>
+      </div>
+      <div class="qj-mast__right">
+        <span class="qj-clock" id="qj-clock">--:--</span>
+        <button class="qj-exit qj-gear" id="qj-gear" aria-label="打开设置" title="设置（在「界面方案」里可再次开启曲径）">设 置</button>
+        <button class="qj-exit" id="qj-exit" aria-label="退出曲径，回到书架首页" title="退出曲径，回到书架首页">出 口</button>
+      </div>
+    </header>
+    <div class="qj-stage" id="qj-stage">
+      <section class="qj-view" data-qj-v="jin" hidden=""></section>
+      <section class="qj-view" data-qj-v="jia" hidden=""></section>
+      <section class="qj-view" data-qj-v="ji" hidden=""></section>
+      <section class="qj-view" data-qj-v="fang" hidden=""></section>
+      <section class="qj-view" data-qj-v="jian" hidden=""></section>
+    </div>
+    <footer class="qj-trail">
+      <span id="qj-trail-today">今日 0 分</span>
+      <span class="qj-trail__bar"><i id="qj-trail-x"></i></span>
+      <span id="qj-trail-goal">目标 30 分</span>
+      <span class="qj-trail__sep">·</span><span id="qj-trail-streak">连续 0 天</span>
+      <span class="qj-trail__sep">·</span><span id="qj-trail-books">藏书 0 册</span>
+      <span class="qj-trail__hint">1–5 换站 · 点「出口」回到旧界面</span>
+    </footer>
+  </div>
+</div>
+<!-- ===== BOOKSHELF ===== -->
+<div class="page" id="page-bookshelf" role="main">
+  <h1 class="sr-only">北风 · 书架</h1>
+  <div class="topbar">
+    <span class="brand">北风</span>
+    <button class="btn btn-sm btn-icon" data-nav="home" title="主页" aria-label="主页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>
+    </button>
+    <span class="tts-status" id="tts-status-label2"></span>
+    <button class="focus-chip" data-focus-chip="" hidden="" title="番茄钟运行中，点击打开面板"><span class="focus-chip__time">25:00</span><span class="focus-chip__label">休息中</span><span class="focus-chip__bar" style="width:100%"></span></button>    <span class="topbar-spacer"></span>
+    <div class="bf-sel-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0" aria-label="标签筛选"><span class="bf-sel-val">全部标签</span><svg class="bf-sel-arw" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M0 1l5 5 5-5z" fill="currentColor"></path></svg></div><select class="select bf-sel-native" id="tag-filter" aria-label="标签筛选" style="max-width:110px;font-size:12px" data-tag-filter=""><option value="">全部标签</option></select>
+    <div class="bf-sel-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0" aria-label="分组筛选"><span class="bf-sel-val">全部分组</span><svg class="bf-sel-arw" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M0 1l5 5 5-5z" fill="currentColor"></path></svg></div><select class="select bf-sel-native" id="group-filter" aria-label="分组筛选" style="max-width:110px;font-size:12px" data-group-filter=""><option value="">全部分组</option></select>
+    <button class="btn btn-sm btn-icon" data-shelf-manage="" title="分组管理" aria-label="分组管理"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7h6l2 2h10v10H3z"></path><path d="M3 7V5h6"></path></svg></button>
+    <button class="btn btn-sm btn-icon noti-bell" data-noti-bell="" title="通知中心" aria-label="通知中心"><span class="noti-bell-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="noti-bell__n">3</span></button>
+    <button class="btn btn-sm btn-icon" data-more-menu="shelf" title="更多" aria-label="更多操作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle></svg>
+    </button>
+    
+  </div>
+  <div class="bookshelf-body">
+    <!-- 卡面动作就地编辑器：内容与「设置 → 书架」那一节是同一个函数出的 -->
+    <div class="shelf-picker" id="shelf-picker" hidden=""></div>
+    <div class="batchbar" id="batchbar">
+      <button class="btn btn-xs" data-batch="selectAll" aria-label="全选">全选</button>
+      <button class="btn btn-xs" data-batch="star" aria-label="批量收藏">批量收藏</button>
+      <button class="btn btn-xs" data-batch="tag" aria-label="批量标签">批量标签</button>
+      <button class="btn btn-xs" data-batch="collect" aria-label="批量放分组">放分组</button>
+      <button class="btn btn-xs" data-batch="gather" aria-label="按氛围聚会">AI 聚会</button>
+      <button class="btn btn-xs" data-batch="download" aria-label="批量下载">批量下载</button>
+      <button class="btn btn-xs danger" data-batch="delete" aria-label="批量删除">批量删除</button>
+      <span style="font-size:11px;color:var(--text-weak)" id="batch-count"></span>
+      <span class="topbar-spacer"></span>
+      <button class="btn btn-xs" data-batch="clear" aria-label="取消选择">取消</button>
+    </div>
+    <div class="bs-stats-top" id="bs-stats-top"></div>
+    <span class="bs-trash-link" id="bs-trash-link" hidden="" role="button" tabindex="0" title="回收站里还有书，点击打开数据 / 备份面板"></span>
+    <div class="bs-header" id="bs-header">
+      <input class="input" id="book-search" placeholder="搜索书名..." data-search-books="">
+      <!-- 跨书正文搜索入口（书架页）。书名搜索保持原行为，搜正文另开面板。 -->
+      <button class="btn btn-xs" data-across-search="" style="flex:0 0 auto" title="在所有书籍的正文中搜索">搜正文</button>
+      <div class="bf-sel-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0" aria-label="排序方式"><span class="bf-sel-val">最近阅读</span><svg class="bf-sel-arw" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M0 1l5 5 5-5z" fill="currentColor"></path></svg></div><select class="select bf-sel-native" id="book-sort" aria-label="排序方式" data-sort-books="">
+        <option value="recent">最近阅读</option>
+        <option value="progress">进度（高到低）</option>
+        <option value="title">书名</option>
+        <option value="imported">导入时间</option>
+        <option value="words">字数（多到少）</option>
+      </select>
+      <span class="spacer"></span>
+      <div class="view-btns">
+        <button id="view-grid" data-view="grid" title="网格视图" aria-label="网格视图" aria-pressed="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </button>
+        <button id="view-list" data-view="list" title="列表视图" aria-label="列表视图" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+    <div class="bs-recent-wrap" id="bs-recent-wrap" style="display:none;margin-bottom:14px;">
+      <div class="section-title" style="margin-bottom:8px;">最近在读</div>
+      <div class="recent-scroll" id="bs-recent"></div>
+    </div>
+    <div class="books-grid grid" id="books-grid"></div>
+    <!-- 浮动导入按钮（仅书架页可见，CSS 控制悬浮位置） -->
+    <button class="bf-fab" id="bf-fab-import" data-trigger-import="" title="导入 TXT / 剪贴板 / 网址" aria-label="导入书籍">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </button>
+  </div>
+  <input type="file" id="file-input" accept=".txt,.text,.json" multiple="" style="display:none" data-file-input="">
+</div>
+
+<!-- ===== NOTES（笔记 Tab 聚合首页）===== -->
+<div class="page" id="page-notes" role="main" hidden="">
+  <h2 class="sr-only">北风 · 笔记</h2>
+  <div class="topbar">
+    <span class="brand">笔记</span>
+    <span class="topbar-spacer"></span>
+    <button class="btn btn-sm btn-icon" id="notes-refresh" title="刷新" aria-label="刷新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+    <button class="btn btn-sm btn-icon noti-bell" data-noti-bell="" title="通知中心" aria-label="通知中心"><span class="noti-bell-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="noti-bell__n">3</span></button>
+    <button class="btn btn-sm btn-icon" data-more-menu="notes" title="更多" aria-label="更多操作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle></svg>
+    </button>
+    
+  </div>
+  <div class="notes-body" id="notes-body">
+    <div class="note-stat-row" id="note-stat-row"></div>
+    <div class="note-actions-bar">
+      <button class="btn primary" id="notes-open-editor" data-open-notes="">打开便签编辑器</button>
+      <button class="btn" id="notes-new">+ 新建便签</button>
+      <button class="btn" data-cmd="ann.across">标注中心</button>
+    </div>
+    <h3 class="section-title section-title--notes">全部标注（按书分组）</h3>
+    <div id="notes-list"></div>
+  </div>
+</div>
+
+<!-- ===== MINE（我的 Tab 占位骨架）===== -->
+<div class="page" id="page-mine" role="main" hidden="">
+  <h2 class="sr-only">北风 · 我的</h2>
+  <div class="topbar">
+    <span class="brand">我的</span>
+    <span class="topbar-spacer"></span>
+    <button class="btn btn-sm btn-icon noti-bell" data-noti-bell="" title="通知中心" aria-label="通知中心"><span class="noti-bell-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="noti-bell__n">3</span></button>
+    <button class="btn btn-sm btn-icon" data-more-menu="mine" title="更多" aria-label="更多操作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle></svg>
+    </button>
+    
+  </div>
+  <div class="mine-body" id="mine-body">
+    <div class="mine-header">
+      <div class="mine-avatar">北</div>
+      <div class="mine-meta">
+        <div class="mine-name">北风读者</div>
+        <div class="mine-sub" id="mine-stat">藏书 0 · 已读 0 分钟</div>
+      </div>
+    </div>
+    <div class="mine-groups">
+      <div class="mine-group"><h4>阅读</h4>
+        <button class="mine-item" data-cmd="stats.open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 6-6"/></svg><span>阅读统计</span><i>›</i></button>
+        <button class="mine-item" data-cmd="ws.focus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>番茄钟</span><i>›</i></button>
+        <button class="mine-item" data-cmd="ws.noise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 18 0"/><path d="M7 12a5 5 0 0 1 10 0"/><circle cx="12" cy="12" r="1.5"/></svg><span>白噪音</span><i>›</i></button>
+        <button class="mine-item" data-cmd="tts.start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg><span>语音朗读</span><i>›</i></button>
+      </div>
+      <div class="mine-group"><h4>工具</h4>
+        <button class="mine-item" data-cmd="ai.center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span>AI 研读中心</span><i>›</i></button>
+        <button class="mine-item" data-cmd="dev.console"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg><span>DSL 终端</span><i>›</i></button>
+        <button class="mine-item" data-cmd="wb.open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 8h1M14 8h1M9 12h1M14 12h1M9 16h6"/></svg><span>工作台</span><i>›</i></button>
+        <!-- 标注聚合不在这里：这一页是统计 / 设置 / 备份的入口，标注的聚合视图就是「笔记」页本身，
+             同一个东西在两处各挂一个入口，用户会以为它们是两回事 -->
+        <button class="mine-item" data-cmd="data.autobackup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>立即备份</span><i>›</i></button>
+      </div>
+      <div class="mine-group"><h4>关于</h4>
+        <button class="mine-item" data-cmd="diag.open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>运维诊断</span><i>›</i></button>
+        <button class="mine-item" data-open-settings=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>偏好设置</span><i>›</i></button>
+        <button class="mine-item" data-cmd="help.changelog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>使用手册</span><i>›</i></button>
+        <a class="mine-item" href="mailto:bytelate@163.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>联系作者</span><i>↗</i></a>
+        <div class="mine-ver" id="mine-ver">北风 · V0.0.1-alpha</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== READER ===== -->
+<div class="page" id="page-reader" role="main" hidden="">
+  <h2 class="sr-only">北风 · 阅读器</h2>
+  <div class="topbar">
+    <button class="btn btn-sm" data-close-reader="" aria-label="返回书架">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      书架
+    </button>
+    <span class="brand" id="reader-book-title">北风</span>
+    <!-- 前进/后退原在此处（#nav-back/#nav-forward）。-->
+    <button class="focus-chip" data-focus-chip="" hidden="" title="番茄钟运行中，点击打开面板"><span class="focus-chip__time">25:00</span><span class="focus-chip__label">休息中</span><span class="focus-chip__bar" style="width:100%"></span></button><span class="topbar-spacer"></span>
+    
+    <button class="btn btn-sm" data-open-drawer="toc" aria-label="目录">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      目录
+    </button>
+        <button class="btn btn-sm btn-icon noti-bell" data-noti-bell="" title="通知中心" aria-label="通知中心"><span class="noti-bell-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="noti-bell__n">3</span></button>
+<button class="btn btn-sm" data-reader-more="" aria-label="更多" title="更多操作">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle></svg>
+    </button>
+  </div>
+  <div class="reader-body">
+    <div class="reader-progress" id="reader-progress" data-progress-bar="" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="阅读进度，点击可跳转到对应章节" title="点击跳转到对应章节"><div class="fill" id="reader-progress-fill"></div></div>
+    <div class="reader-wrap" id="reader-wrap">
+      <div class="reader-main" id="reader-main"></div>
+      <div class="resume-tip" id="resume-tip"></div>
+      <button class="back-top" id="back-top" data-back-top="" aria-label="回到顶部" title="回到顶部">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+      </button>
+      <div class="selbar" id="selbar">
+        <button data-sel="bookmark" aria-label="添加书签">书签</button>
+        <button data-sel="note-underline" aria-label="划线" title="划线（黄色底）"><span class="selbar-prev prev-underline">文</span>划线</button>
+        <button data-sel="note-wavy" aria-label="波浪线" title="波浪线（不遮挡正文）"><span class="selbar-prev prev-wavy">文</span>波浪线</button>
+        <button data-sel="note-bg" aria-label="底色" title="底色（可自选颜色）"><span class="selbar-prev prev-bg">文</span>底色</button>
+        <button data-sel="copy" aria-label="复制">复制</button>
+        <button data-sel="search" aria-label="搜索">搜索</button>
+        <button data-sel="vocab" aria-label="收藏生词">生词</button>
+        <button data-sel="speak" aria-label="朗读选中">朗读</button>
+        <button data-sel="ask-ai" class="selbar-ai" aria-label="问 AI（选中文本）">问 AI</button>
+      </div>
+    </div>
+    <div class="tts-bar" id="tts-bar">
+      <div class="group">
+        <span class="dot online" id="tts-dot"></span>
+        <span class="voice" id="tts-voice">---</span>
+      </div>
+      <div class="controls">
+        <button id="tts-play" data-tts="play" title="播放/暂停" aria-label="播放/暂停">
+          <svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          <svg class="pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button data-tts="stop" title="停止" aria-label="停止">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="1"></rect></svg>
+        </button>
+        <button data-tts="prevChapter" title="上一章" aria-label="上一章">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 5v14"></path><path d="M5 12l7-7v14z"></path></svg>
+        </button>
+        <button data-tts="nextChapter" title="下一章" aria-label="下一章">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 5v14"></path><path d="M19 12l-7-7v14z"></path></svg>
+        </button>
+      </div>
+      <span class="time" id="tts-time">00:00</span>
+      <span class="time" id="tts-remain"></span>
+      <span class="speed" id="tts-speed">1.0x</span>
+      <div class="bf-sel-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0" aria-label="语速"><span class="bf-sel-val">1.0x</span><svg class="bf-sel-arw" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M0 1l5 5 5-5z" fill="currentColor"></path></svg></div><select id="tts-rate" class="select bf-sel-native" style="height:26px;font-size:11px;padding:0 22px 0 6px;min-width:64px;" data-tts-rate="" aria-label="语速">
+        <option value="0.7">0.7x</option><option value="0.85">0.85x</option><option value="1.0" selected="">1.0x</option>
+        <option value="1.2">1.2x</option><option value="1.5">1.5x</option><option value="2.0">2.0x</option>
+      </select>
+      <span class="timer off" id="tts-timer" data-tts-timer="">关</span>
+      <button data-tts="try" class="btn btn-xs" aria-label="试听">试听</button>
+      <span class="stats" id="tts-stats"></span>
+    </div>
+    <div class="reader-bottom" id="reader-bottom">
+      <span class="prog" id="reader-prog" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">0%</span>
+      <span class="time" id="reader-remain" style="color:var(--text-weak)"></span>
+      <div class="nav">
+        <button class="btn btn-xs" data-nav-chapter="prev" aria-label="上一章">上一章</button>
+        <button class="btn btn-xs" data-nav-chapter="next" aria-label="下一章">下一章</button>
+      </div>
+      <span style="color:var(--text-weak);font-size:11px" id="reader-chap-indicator" aria-live="polite" aria-atomic="true"></span>
+      <span class="spacer"></span>
+      <button class="btn btn-xs ai-fab" data-ai-summary="" title="AI 摘要本章">AI 摘要</button>
+      <button class="btn btn-xs" data-tts="start" title="朗读本章（TTS）" aria-label="朗读本章">朗读</button>
+      <span class="time" id="reader-time">21:08</span>
+    </div>
+    <div class="chap-end-card" id="chap-end-card" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- ===== DRAWER ===== -->
+<div id="bf-scrim" aria-hidden="true"></div>
+<div class="pk-panel pk-drawer pk-drawer--right" id="drawer" role="dialog" aria-modal="true">
+  <header class="pk-panel__head drawer-head" style="padding:0 var(--sp-4)">
+    <div class="pk-panel__tabs drawer-tabs" role="tablist" aria-label="抽屉页签" id="drawer-tabs">
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-toc" data-drawer-tab="toc" role="tab" tabindex="0" aria-selected="true" aria-controls="drawer-body" aria-label="目录">目录</button>
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-search" data-drawer-tab="search" role="tab" tabindex="-1" aria-selected="false" aria-controls="drawer-body" aria-label="搜索">搜索</button>
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-bookmarks" data-drawer-tab="bookmarks" role="tab" tabindex="-1" aria-selected="false" aria-controls="drawer-body" aria-label="书签">书签<span class="pane-tab__n" data-drawer-tabn="bookmarks" hidden=""></span></button>
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-notes" data-drawer-tab="notes" role="tab" tabindex="-1" aria-selected="false" aria-controls="drawer-body" aria-label="笔记">笔记<span class="pane-tab__n" data-drawer-tabn="notes" hidden=""></span></button>
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-vocab" data-drawer-tab="vocab" role="tab" tabindex="-1" aria-selected="false" aria-controls="drawer-body" aria-label="生词">生词<span class="pane-tab__n" data-drawer-tabn="vocab" hidden=""></span></button>
+      <button class="pk-panel__tab drawer-tab" id="drawer-tab-marks" data-drawer-tab="marks" role="tab" tabindex="-1" aria-selected="false" aria-controls="drawer-body" aria-label="划线">划线<span class="pane-tab__n" data-drawer-tabn="marks" hidden=""></span></button>
+    </div>
+    <button class="pk-panel__close" data-close-drawer="" title="关闭" aria-label="关闭面板">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </header>
+  <div class="pk-panel__body drawer-body" id="drawer-body" aria-labelledby="drawer-tab-toc"></div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="settings pk-panel" id="settings" role="dialog" aria-modal="true" style="top:8vh;left:50%;transform:translateX(-50%);width:min(860px,94vw);max-height:84vh;">
+  <header class="pk-panel__head settings-head">
+    <h3 class="pk-panel__title">设置</h3>
+    <input class="input settings-search" id="settings-search" type="search" placeholder="搜索设置项…" aria-label="搜索设置项" autocomplete="off">
+    <span class="settings-search-hint" id="settings-search-hint" aria-live="polite"></span>
+    <div class="pk-panel__actions">
+      <button class="pk-panel__close" data-close-settings="" title="关闭" aria-label="关闭设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </header>
+  {{STYLE_09}}
+  <!-- 任务38-A：左侧分区导航 + 内容两栏。导航是 #settings-body 的**兄弟**而非后代 ——
+       #settings-body 必须继续是自己滚动的那一个容器（IntersectionObserver 的 root: b
+       依赖它、sweep 的几何兜底也以它为基准），把导航塞进 body 内部会一并被 innerHTML
+       清空、且让 root 变成两栏错位。放在 body 外层不参与滚动。 -->
+  <div class="settings-main">
+    <nav class="settings-nav" id="settings-nav" aria-label="设置分区导航"></nav>
+    <div class="pk-panel__body settings-body" id="settings-body"></div>
+    <div class="settings-search-empty" id="settings-search-empty" role="status" aria-live="polite" hidden>
+      <div class="sse-icon" id="settings-search-empty-ic"></div>
+      <div class="sse-msg">没有匹配“<b id="settings-search-empty-q"></b>”的设置项</div>
+      <button type="button" class="btn btn-sm" id="settings-search-empty-clear">清除搜索</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<!-- ===== IMPORT PROGRESS ===== -->
+<div class="modal-bg" id="import-bg" role="dialog" aria-modal="true" aria-labelledby="import-title">
+  <div class="modal-box progress-box" style="max-width:360px">
+    <h3 id="import-title" style="margin-bottom:10px;font-size:15px">导入中...</h3>
+    <div class="bar" style="height:6px;background:var(--bg-input);border-radius:3px;overflow:hidden;margin-bottom:8px">
+      <div class="fill" id="import-fill" role="progressbar" aria-label="导入进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:100%;width:0;background:var(--accent);transition:width var(--dur-fast)"></div>
+    </div>
+    <p id="import-text" aria-live="polite" aria-atomic="true" style="font-size:12px;color:var(--text-dim)"></p>
+    <!-- 导入取消：导入中可取消——
+         面板按钮转取消 + ESC（importFiles 注册
+         一次性 keydown）；取消后清理中间态
+         （已入库章节逐条回滚，importFile 内） -->
+    <button class="btn btn-xs" id="import-cancel" style="margin-top:6px">取消导入</button>
+  </div>
+</div>
+
+<!-- ===== NOTI ===== -->
+<div class="noti-wrap" id="noti-wrap"></div>
+
+</div>
+
+
+
+<script>{{SCRIPT_000}}{{SCRIPT_001}}{{SCRIPT_002}}{{SCRIPT_003}}{{SCRIPT_004}}{{SCRIPT_005}}{{SCRIPT_006}}{{SCRIPT_007}}{{SCRIPT_008}}{{SCRIPT_009}}{{SCRIPT_010}}{{SCRIPT_011}}{{SCRIPT_012}}{{SCRIPT_013}}{{SCRIPT_014}}{{SCRIPT_015}}{{SCRIPT_016}}{{SCRIPT_017}}{{SCRIPT_018}}{{SCRIPT_019}}{{SCRIPT_020}}{{SCRIPT_021}}{{SCRIPT_022}}{{SCRIPT_023}}{{SCRIPT_024}}{{SCRIPT_025}}{{SCRIPT_026}}{{SCRIPT_027}}{{SCRIPT_028}}{{SCRIPT_029}}{{SCRIPT_030}}{{SCRIPT_031}}{{SCRIPT_032}}{{SCRIPT_033}}{{SCRIPT_034}}{{SCRIPT_035}}{{SCRIPT_036}}{{SCRIPT_037}}{{SCRIPT_038}}{{SCRIPT_039}}{{SCRIPT_040}}{{SCRIPT_041}}{{SCRIPT_042}}{{SCRIPT_043}}{{SCRIPT_044}}{{SCRIPT_045}}{{SCRIPT_046}}{{SCRIPT_047}}{{SCRIPT_048}}{{SCRIPT_049}}{{SCRIPT_050}}{{SCRIPT_051}}{{SCRIPT_052}}{{SCRIPT_053}}{{SCRIPT_054}}{{SCRIPT_055}}{{SCRIPT_056}}{{SCRIPT_057}}{{SCRIPT_058}}{{SCRIPT_059}}{{SCRIPT_060}}{{SCRIPT_061}}{{SCRIPT_062}}{{SCRIPT_063}}{{SCRIPT_064}}{{SCRIPT_065}}{{SCRIPT_066}}{{SCRIPT_067}}{{SCRIPT_068}}{{SCRIPT_069}}{{SCRIPT_070}}{{SCRIPT_071}}{{SCRIPT_072}}{{SCRIPT_073}}{{SCRIPT_074}}{{SCRIPT_075}}{{SCRIPT_076}}{{SCRIPT_077}}{{SCRIPT_078}}{{SCRIPT_079}}{{SCRIPT_080}}{{SCRIPT_081}}{{SCRIPT_082}}{{SCRIPT_083}}{{SCRIPT_084}}{{SCRIPT_085}}{{SCRIPT_086}}{{SCRIPT_087}}{{SCRIPT_088}}{{SCRIPT_089}}{{SCRIPT_090}}{{SCRIPT_091}}{{SCRIPT_092}}{{SCRIPT_093}}{{SCRIPT_094}}{{SCRIPT_095}}{{SCRIPT_096}}{{SCRIPT_097}}{{SCRIPT_098}}{{SCRIPT_099}}{{SCRIPT_100}}{{SCRIPT_101}}{{SCRIPT_102}}{{SCRIPT_103}}{{SCRIPT_104}}{{SCRIPT_105}}{{SCRIPT_106}}{{SCRIPT_107}}{{SCRIPT_108}}{{SCRIPT_109}}{{SCRIPT_110}}{{SCRIPT_111}}{{SCRIPT_112}}{{SCRIPT_113}}{{SCRIPT_114}}{{SCRIPT_115}}{{SCRIPT_116}}{{SCRIPT_117}}{{SCRIPT_118}}{{SCRIPT_119}}{{SCRIPT_120}}{{SCRIPT_121}}{{SCRIPT_122}}{{SCRIPT_123}}{{SCRIPT_124}}{{SCRIPT_125}}{{SCRIPT_126}}{{SCRIPT_127}}{{SCRIPT_128}}{{SCRIPT_129}}{{SCRIPT_130}}{{SCRIPT_131}}{{SCRIPT_132}}{{SCRIPT_133}}{{SCRIPT_134}}{{SCRIPT_135}}{{SCRIPT_136}}{{SCRIPT_137}}{{SCRIPT_138}}{{SCRIPT_139}}{{SCRIPT_140}}{{SCRIPT_141}}{{SCRIPT_142}}{{SCRIPT_143}}{{SCRIPT_144}}{{SCRIPT_145}}{{SCRIPT_146}}{{SCRIPT_147}}{{SCRIPT_148}}{{SCRIPT_149}}{{SCRIPT_150}}{{SCRIPT_151}}{{SCRIPT_152}}{{SCRIPT_153}}{{SCRIPT_154}}{{SCRIPT_155}}{{SCRIPT_156}}{{SCRIPT_157}}{{SCRIPT_158}}{{SCRIPT_159}}{{SCRIPT_160}}{{SCRIPT_161}}{{SCRIPT_162}}{{SCRIPT_163}}{{SCRIPT_164}}{{SCRIPT_165}}{{SCRIPT_166}}{{SCRIPT_167}}{{SCRIPT_168}}{{SCRIPT_169}}{{SCRIPT_170}}{{SCRIPT_171}}{{SCRIPT_172}}{{SCRIPT_173}}{{SCRIPT_174}}{{SCRIPT_175}}{{SCRIPT_176}}{{SCRIPT_177}}{{SCRIPT_178}}{{SCRIPT_179}}{{SCRIPT_180}}</script>
+
+<!-- ===== 全局底部 TabBar（5-Tab 骨架，笔记/我的 作为待填充页）===== -->
+<nav class="bf-tabbar" id="bf-tabbar" role="tablist" aria-label="主导航" hidden="">
+  <button class="bf-tab" data-tab="home" role="tab" aria-selected="false" aria-label="首页">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V11z"/></svg>
+    <span>首页</span>
+  </button>
+  <button class="bf-tab" data-tab="bookshelf" role="tab" aria-selected="false" aria-label="书架">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h3v16H4zM10 4h4v16h-4zM17 4h3v16h-3z"/></svg>
+    <span>书架</span>
+  </button>
+  <button class="bf-tab bf-tab--center" data-tab="reader" role="tab" aria-selected="false" aria-label="阅读" hidden="">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+  <button class="bf-tab" data-tab="notes" role="tab" aria-selected="false" aria-label="笔记">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+    <span>笔记</span>
+  </button>
+  <button class="bf-tab" data-tab="mine" role="tab" aria-selected="false" aria-label="我的">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+    <span>我的</span>
+  </button>
+</nav>
+
+<!-- ===== 全局右抽屉（设置/目录/搜索/便签等统一入口）===== -->
+<div class="bf-drawer-mask" id="bf-drawer-mask" hidden=""></div>
+<aside class="bf-drawer" id="bf-drawer" role="dialog" aria-modal="true" aria-label="侧边面板" aria-hidden="true" hidden="">
+  <header class="bf-drawer__head">
+    <span class="bf-drawer__title" id="bf-drawer-title">面板</span>
+    <button class="bf-drawer__close" id="bf-drawer-close" aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </header>
+  <div class="bf-drawer__body" id="bf-drawer-body"></div>
+</aside>
+
+</body></html>
