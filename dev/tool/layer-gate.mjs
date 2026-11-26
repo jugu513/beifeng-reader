@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 方案B 2b · 分层清单审计闸门（只读）
    职责边界（与 src-gate/build-check 不重叠）：
-     · build-check：src 字节级还原六份母本（产物一致）。
+     · build-check：src 字节级还原八份副本（产物一致）。
      · src-gate：段文件齐全、占位符连续、命名空间归属唯一（结构无幽灵）。
      · layer-gate（本闸）：src/LAYERS.json 分层清单覆盖全部段、层合法、且与段内 BF 定义归属一致。
    它守的是"分层视图不漂移"——清单是架构可读性的单一来源，若删段/加段/改定义而清单没跟上，

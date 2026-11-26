@@ -22,7 +22,7 @@ const TMP_OUT = path.join(OUT_DIR, '_setup-tmp.exe');
 const OUT = path.join(OUT_DIR, '北风V0.0.1-alpha-Setup.exe');
 const PKG_FILES = [
   '北风V0.0.1-alpha.html', '启动北风.bat', '安装环境.bat', '校验文件.bat',
-  'README.md', 'LICENSE', '北风.ico',
+  '创建桌面快捷方式.bat', 'README.md', 'LICENSE', '北风.ico',
 ];
 const EXPECT_MD5 = '8e5d5d98c6d6c6297f396d9798ac59ab';
 

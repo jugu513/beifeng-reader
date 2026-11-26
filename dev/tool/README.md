@@ -11,14 +11,14 @@ node tool/selfcheck.mjs          # 交付前完整检查
 node tool/selfcheck.mjs --quick  # 日常自查，秒级
 ```
 
-`selfcheck` 是唯一入口：它先从 `src/` 构建母本、同步六份副本，再依次跑 11 道闸门和 12 项报告，最后给出能不能交付的结论。日常改完代码直接跑它就行。
+`selfcheck` 是唯一入口：它先从 `src/` 构建母本、同步七份副本并核对八份指纹，再依次跑 11 道闸门和 12 项报告，最后给出能不能交付的结论。日常改完代码直接跑它就行。
 
 ## 构建
 
 | 脚本 | 作用 |
 |---|---|
 | `build.mjs` | 读 `src/`，替换占位符，拼成单文件，写到根目录的母本 txt |
-| `deploy.mjs` | 把母本同步到另外五份副本 |
+| `deploy.mjs` | 把母本同步到另外七份副本（含仓库根发布两份） |
 | `build-check.mjs` | 从 src 构建到临时文件，和母本逐字节比对 |
 
 改代码的正确顺序：编辑 `src/` → `node tool/build.mjs` → `node tool/deploy.mjs`。或者直接跑 `selfcheck`，前两步它会自动做。

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 方案B · src 源码结构闸门
    与 build-check.mjs 的职责边界（严格不重叠）：
-     · build-check：build.mjs 构建 → 与六份母本逐字节/md5 一致。守「产物还原」。
+     · build-check：build.mjs 构建 → 与八份副本逐字节/md5 一致。守「产物还原」。
      · src-gate（本闸）：守 build-check 抓不到的「结构幽灵」：
          a) 孤儿段文件——src/script/NNN.js 存在但模板无对应占位符，不参与构建，
             build-check 照样全绿，但它是第二份没被守护的源码，改了不生效、删了没人知道；
