@@ -9,7 +9,7 @@
        汇总单列「报告（不卡）」栏提示人工复核。彻底解决"清单冒充闸门"。
      · 每步打印 [GATE]/[REPORT] 角色标签，签字结论只看闸门栏。
 
-   做什么：⓪a build(src→根txt)  ⓪b deploy(根txt→五份)  ① 六份指纹  ② gate-v2  ③ acceptance  ④ dup-scan
+   做什么：⓪a build(src→母本)  ⓪b deploy(母本→七份)  ① 八份指纹  ② gate-v2  ③ acceptance  ④ dup-scan
            ⑤ build-check  ⑥ src-gate  ⑥b layer-gate(方案B分层清单)  ⑦ parity(G21,--strict)
            ⑦b regress(行为回归汇总闸，11套纯逻辑) —— 以上闸门；⑧ L4 报告工具（不卡）。
    退出码：任一【闸门】硬失败 → 1；仅报告红 → 0（签字通过 + 高亮提示）。
@@ -86,8 +86,12 @@ dep.out.split('\n').filter(Boolean).forEach((l) => say('  ' + l));
 if (dep.code !== 0) gateFail('deploy', '同步失败');
 say('');
 
-/* ① 六份母本指纹 */
-const files = [TXT, HTML, path.join(ROOT, 'work', '北风V0.0.1-alpha.txt'), path.join(ROOT, 'work', '北风V0.0.1-alpha.html'), TARGET, TARGET_HTML];
+/* ① 八份母本指纹（dev 契约六份 + 仓库根发布两份） */
+const PUB = path.dirname(ROOT);
+const files = [
+  TXT, HTML, path.join(ROOT, 'work', '北风V0.0.1-alpha.txt'), path.join(ROOT, 'work', '北风V0.0.1-alpha.html'), TARGET, TARGET_HTML,
+  path.join(PUB, '北风V0.0.1-alpha.html'), path.join(PUB, 'index.html'),
+];
 say('[GATE] 【① 母本指纹】');
 const hashes = [];
 for (const f of files) {
@@ -97,9 +101,9 @@ for (const f of files) {
   hashes.push(h);
   say('  ' + h + '  ' + path.relative(ROOT, f) + '  (' + (b.toString('utf8').split('\n').length - 1) + ' 行 / ' + b.length + ' B)');
 }
-const consistent = hashes.length === 6 && hashes.every((h) => h === hashes[0]);
-if (consistent) say('  ✓ 六份一致（根 2 + work 2 + target 2）');
-else { say('  ✗ 六份不一致 —— 根↔work↔target 未同步 / html 未重生成'); gateFail('fingerprint', '六份指纹不一致'); }
+const consistent = hashes.length === 8 && hashes.every((h) => h === hashes[0]);
+if (consistent) say('  ✓ 八份一致（dev 6 + 仓库根发布 2）');
+else { say('  ✗ 八份不一致 —— dev↔仓库根未同步 / html 未重生成'); gateFail('fingerprint', '八份指纹不一致'); }
 say('');
 
 /* ② gate-v2 */

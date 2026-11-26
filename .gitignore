@@ -12,3 +12,7 @@ tmp/
 .vscode/
 .idea/
 Thumbs.db
+
+# 会话内部产物（不进公开仓库）
+.uploads/
+.trae/

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* 方案B守护闸门：验证 src/ 能字节级还原出当前交付母本。
-   做法：build.mjs 构建到临时文件 → 与六份母本逐一比对 md5 → 全一致才过。
+   做法：build.mjs 构建到临时文件 → 与八份副本（dev 契约六份 + 仓库根发布两份）逐一比对 md5 → 全一致才过。
    意义：src 与产物不许漂移。任何人改了 src 下的 CSS/模板，构建产物必须仍等于交付单文件；
          若要合法改变产物，须显式走"改根txt→deploy→再从产物重拆src"的流程（见 README）。
    本闸门独立于 gate-v2 的 19 道判据，不扰动现有全绿体系。 */
@@ -30,6 +30,8 @@ const copies = [
   'work/北风V0.0.1-alpha.html',
   'pre/target/北风V0.0.1-alpha.txt',
   'pre/target/北风V0.0.1-alpha.html',
+  '../北风V0.0.1-alpha.html',
+  '../index.html',
 ].map((f) => path.join(ROOT, f));
 
 let bad = 0;

@@ -6,6 +6,22 @@
 
 [![阅读器](screenshots/01-reader.png)](screenshots/01-reader.png)
 
+## 快速开始
+
+**完整程序只有一个文件：[`北风V0.0.1-alpha.html`](北风V0.0.1-alpha.html)（约 2.9 MB）。** 下载它，就是全部。
+
+| 你想做什么 | 怎么做 |
+|---|---|
+| 最快读起来 | 双击 `北风V0.0.1-alpha.html`，浏览器直接打开 |
+| 书和笔记要能存住 | 双击 `启动北风.bat`（推荐，见下面的原因） |
+| 第一次用，没有 Python | 先双击 `安装环境.bat`，装一次即可 |
+| 确认文件没下载坏 | 双击 `校验文件.bat`，自动比对官方指纹 |
+| 在线直接用 | 打开仓库的 GitHub Pages，无需下载 |
+
+为什么要 `启动北风.bat`：直接双击 HTML 属于 `file://` 方式，Chrome 会禁用本地数据库，书和笔记存不住。启动器用 Python 开一个只绑本机的服务再打开浏览器，全部功能才完整。这不是程序的缺陷，是浏览器的安全规则。
+
+三个 `.bat` 只在 Windows 上双击运行；macOS / Linux 用户用任意本地静态服务打开仓库根目录即可（如 `python3 -m http.server`）。
+
 ## 它是什么
 
 北风是一个离线优先的长文/小说阅读器。所有代码、样式、逻辑都在 `北风V0.0.1-alpha.html` 这一个文件里，大约 4.8 万行，2.9 MB，没有任何运行时依赖。
@@ -20,7 +36,7 @@
 
 一个 HTML 文件可以拷进 U 盘、丢进网盘、发给自己、在十年后双击打开。它不需要 npm install，不需要构建，不会遇到依赖失效。 Corporations 会倒闭，CDN 会下线，但一个本地文件只要浏览器还在就能跑。
 
-代价是这个文件会变大、会不好读。为了让它在变大之后还能维护，源码被拆成了 `src/` 下的模板、9 块 CSS 和 181 段 JS，再由 `tool/build.mjs` 逐字节拼回单文件。改代码的人编辑 `src/`，使用者只拿成品。
+代价是这个文件会变大、会不好读。为了让它在变大之后还能维护，源码被拆成了 `dev/src/` 下的模板、9 块 CSS 和 181 段 JS，再由工具逐字节拼回单文件。改代码的人编辑 `dev/src/`，使用者只拿成品。
 
 ## 现在能做什么
 
@@ -35,21 +51,6 @@
 
 主题取舍、信息密度、交互反馈这些都有过多轮打磨，不是随便堆上去的。
 
-## 跑起来
-
-**最简单**：用浏览器打开 `index.html` 或 `北风V0.0.1-alpha.html`。
-
-**推荐**（本地服务，数据功能才完整）：
-
-```bash
-node tool/serve.mjs 8791
-# 打开 http://127.0.0.1:8791
-```
-
-为什么要本地服务：`file://` 是不透明源，Chrome 会禁用 IndexedDB，书和笔记就存不住。本地服务或 GitHub Pages 这类 http(s) 环境才让全部功能生效。这不是程序的缺陷，是浏览器的安全规则。
-
-如果启用了 GitHub Pages，直接访问仓库主页就能用——`index.html` 会带你进程序。
-
 ## 界面
 
 | | |
@@ -58,36 +59,54 @@ node tool/serve.mjs 8791
 | ![设置](screenshots/03-settings.png) | ![夜间模式](screenshots/04-dark-mode.png) |
 | ![笔记统计](screenshots/05-notes.png) | ![书架](screenshots/06-shelf.png) |
 
-## 代码在哪，怎么改
-
-唯一编辑源是 `src/`：
+## 目录结构
 
 ```
-src/index.template.html   页面骨架，190 个占位符
-src/styles/01–09.css      9 块样式
-src/script/000–180.js     181 段脚本，按功能分区
-src/LAYERS.json           分层标注，方便定位
+北风V0.0.1-alpha.html   完整程序（下载这个，双击即用）
+index.html              网页版入口（GitHub Pages 用，内容与上面一致）
+启动北风.bat             一键本地服务 + 打开浏览器
+安装环境.bat             安装 Python（只需一次）
+校验文件.bat             校验下载的文件是否完整
+screenshots/            界面截图
+dev/                    开发者区（源码与工具，使用者不用管）
+```
+
+## 怎么确认你拿到的是完整的程序
+
+最简单：双击 `校验文件.bat`，它会自动比对官方指纹并给出结论。
+
+手动核对也可以：
+
+```bash
+md5sum 北风V0.0.1-alpha.html
+# 期望：3bb0502f5280f4aefe2b7f74f8022a6a
+wc -lc 北风V0.0.1-alpha.html
+# 期望：48081 行 / 2891305 字节
+```
+
+程序完整时，仓库根的 `北风V0.0.1-alpha.html` 与 `index.html` 字节完全相同；`dev/` 里的契约副本由 `selfcheck` 自动验证。
+
+## 改代码（开发者）
+
+唯一编辑源是 `dev/src/`：
+
+```
+dev/src/index.template.html   页面骨架，190 个占位符
+dev/src/styles/01–09.css      9 块样式
+dev/src/script/000–180.js     181 段脚本，按功能分区
+dev/src/LAYERS.json           分层标注，方便定位
 ```
 
 改完重新构建并同步：
 
 ```bash
-node tool/build.mjs      # src/ → 根 txt
-node tool/deploy.mjs     # 同步六份副本
+node dev/tool/build.mjs      # src/ → 母本
+node dev/tool/deploy.mjs     # 母本 → 其余七份（含仓库根发布两份）
 ```
 
-`tool/` 里是一套只读检查和验收脚本。常用的是 `node tool/selfcheck.mjs`：它会从 `src/` 重新构建母本，检查六份文件字节一致，跑 19 道结构闸门和 266 条行为回归，最后给出能不能交付的结论。日常快速自查用 `node tool/selfcheck.mjs --quick`。细节见 [tool/README.md](tool/README.md)。
+`dev/tool/` 里是一套只读检查和验收脚本。常用的是 `node dev/tool/selfcheck.mjs`：它会从 `dev/src/` 重新构建母本，检查八份文件字节一致，跑 19 道结构闸门和 266 条行为回归，最后给出能不能交付的结论。日常快速自查用 `node dev/tool/selfcheck.mjs --quick`。细节见 [dev/tool/README.md](dev/tool/README.md)，架构见 [dev/docs/ARCHITECTURE.md](dev/docs/ARCHITECTURE.md)。
 
-## 怎么确认你拿到的是完整的程序
-
-```bash
-md5sum 北风V0.0.1-alpha.txt
-# 期望：3bb0502f5280f4aefe2b7f74f8022a6a
-wc -lc 北风V0.0.1-alpha.txt
-# 期望：48081 行 / 2891305 字节
-```
-
-六份副本（根目录两份、`work/` 两份、`pre/target/` 两份）字节完全相同。`selfcheck` 会自动验证这件事。
+本地预览服务（开发者用）：`node dev/tool/serve.mjs 8791`。
 
 ## 已知边界
 
@@ -107,4 +126,4 @@ MIT。做点什么都行，留个出处就好。
 
 ## English
 
-**Beifeng** is an offline-first novel reader shipped as a single self-contained HTML file (~48k lines, 2.9 MB, zero runtime dependencies). Books, notes, highlights and settings stay in your browser; nothing is uploaded. It includes a bookshelf, a configurable reader, annotations, text-to-speech, themes, and an optional local AI endpoint. Built from `src/` with `tool/build.mjs`; verify a checkout with `node tool/selfcheck.mjs`. MIT licensed.
+**Beifeng** is an offline-first novel reader shipped as a single self-contained HTML file (~48k lines, 2.9 MB, zero runtime dependencies). Download `北风V0.0.1-alpha.html` and open it — that is the whole program. On Windows, `启动北风.bat` starts a local server (install Python once via `安装环境.bat`) so books and notes persist; `校验文件.bat` verifies the download against the official checksum. Books, notes, highlights and settings stay in your browser; nothing is uploaded. Source lives in `dev/src/`, built with `dev/tool/build.mjs`; maintainers verify a checkout with `node dev/tool/selfcheck.mjs`. MIT licensed.

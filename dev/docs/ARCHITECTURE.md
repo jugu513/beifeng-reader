@@ -4,23 +4,24 @@
 
 ## 一句话
 
-成品是一个单文件 HTML（`北风V0.0.1-alpha.txt` / `.html`，内容相同）。它由 `src/` 拼出来，由 `tool/` 验证。
+成品是一个单文件 HTML（`北风V0.0.1-alpha.txt` / `.html`，内容相同，住在 `dev/`）。它由 `src/` 拼出来，由 `tool/` 验证；仓库根的 `北风V0.0.1-alpha.html` 与 `index.html` 是面向使用者的发布成品，与它字节一致。
 
 ## 数据流
 
 ```
 src/index.template.html   ┐
-src/styles/01–09.css      ├─ build.mjs ─→ 北风V0.0.1-alpha.txt ─ deploy.mjs ─┬─ 根目录 .html
+src/styles/01–09.css      ├─ build.mjs ─→ 北风V0.0.1-alpha.txt ─ deploy.mjs ─┬─ dev 根目录 .html
 src/script/000–180.js     ┘                                                  ├─ work/ 两份
-                                                                             └─ pre/target/ 两份
+                                                                             ├─ pre/target/ 两份
+                                                                             └─ 仓库根发布两份（北风V0.0.1-alpha.html + index.html）
 ```
 
-- **`src/` 是唯一编辑源。** 根 txt 已经是构建产物，不要直接改它。
+- **`src/` 是唯一编辑源。** 母本 txt 已经是构建产物，不要直接改它。
 - `build.mjs` 把模板里的 `{{STYLE_NN}}` 和 `{{SCRIPT_NNN}}` 占位符替换成对应的 CSS/JS 文件，拼成单文件。
-- `deploy.mjs` 把产物同步到另外五份，让所有工具审到的是同一份代码。
+- `deploy.mjs` 把产物同步到另外七份，让所有工具审到的是同一份代码，使用者拿到的发布成品也不会漂移。
 - `selfcheck.mjs` 把上面两步串起来，再跑全部检查。日常改完直接跑它。
 
-六份副本字节级一致是硬契约。任何一份对不上，`selfcheck` 会红。
+八份副本（dev 契约六份 + 仓库根发布两份）字节级一致是硬契约。任何一份对不上，`selfcheck` 会红。
 
 ## 源码分区
 
@@ -43,8 +44,8 @@ src/script/000–180.js     ┘                                                 
 
 | 闸门 | 查什么 |
 |---|---|
-| build / deploy | 源码能拼成成品、六份同步 |
-| fingerprint | 六份字节一致 |
+| build / deploy | 源码能拼成成品、七份同步 |
+| fingerprint | 八份字节一致（dev 6 + 发布 2） |
 | gate-v2 | 19 道结构判据（脚本语法、标题、内联样式数量棘轮、确认写点、尺寸令牌等） |
 | acceptance | 静态验收与红线 |
 | dup-scan | 代码里有没有重复定义的组 |
@@ -60,11 +61,13 @@ src/script/000–180.js     ┘                                                 
 ## 常用命令
 
 ```bash
-node tool/selfcheck.mjs           # 交付前完整检查：全部闸门 + 回归 + 报告
-node tool/selfcheck.mjs --quick   # 日常自查：闸门 + 回归快组，秒级
-node tool/gate-v2.mjs             # 只跑 19 道结构判据，期望 19/19
-node tool/serve.mjs 8791          # 本地服务，浏览器走 http://127.0.0.1:8791
+node dev/tool/selfcheck.mjs           # 交付前完整检查：全部闸门 + 回归 + 报告
+node dev/tool/selfcheck.mjs --quick   # 日常自查：闸门 + 回归快组，秒级
+node dev/tool/gate-v2.mjs             # 只跑 19 道结构判据，期望 19/19
+node dev/tool/serve.mjs 8791          # 本地服务，浏览器走 http://127.0.0.1:8791
 ```
+
+（以上命令在仓库根运行；`cd dev` 之后写 `node tool/…` 也一样。）
 
 验证一定要走 `http://127.0.0.1`，不要用 `file://` 打开——后者是不透明源，Chrome 会禁掉 IndexedDB，书存不住，在那里测出来的"零报错"是假的。
 
