@@ -360,7 +360,7 @@
       try { BF.ai.showStoragePlan(); } catch (e) { BF.noti.error('规划失败：' + ((e && e.message) || e)); }
       return;
     }
-    /* P2-7：选择根目录句柄（须在用户手势里调用）。 */
+    /* 选择根目录句柄（须在用户手势里调用）。 */
     if (t.closest('[data-root-pick]')) {
       if (!BF.fsync || !BF.fsync.bindRootHandle) return;
       Promise.resolve(BF.fsync.bindRootHandle()).then(function (r) {

@@ -160,13 +160,13 @@ BF.app._doDelete = async function (id) {
     if (await BF.store.mutate(BF.store.K.NOTES, function (arr) { return (arr || []).filter(x => x && x.bookId !== id); }) === false) _failed++;
     /* 新拓扑：同步清理 IDB 'ugc' 库里该书的所有标注（划线/书签/生词/便签）。
        不进 mutate 队列——'ugc' 是按书维度的独立索引，整书删除用 ugcDelBook 一次性清。
-       P1-3：ugcDelBook 真删失败返回 false，此处据实计入 failed —— IDB 副本删不掉会残留孤儿，
+       ugcDelBook 真删失败返回 false，此处据实计入 failed —— IDB 副本删不掉会残留孤儿，
        不能再像旧版那样吞掉谎报成功（LS 那四张表由上方 mutate 负责，这里只负责 IDB 副本这一份）。 */
     try { if ((await BF.store.ugcDelBook(id)) === false) _failed++; } catch (e) { _failed++; BF.log.warn('清理 IDB 标注副本失败（' + id + '）：' + (e && e.message)); }
     /* 整书正文副本（OPFS books/<id>/body.txt，或降级时 kv 的 body:<id>）也随书删掉：
        只清章节表的话，这份整本副本没有任何界面入口，只会一直占着磁盘。
        计入 failed 与其它级联同一口径 —— 清不掉要让调用方知道，不能谎报删干净。
-       P1-3：delBookFiles 现在按每层真删结果返回 ok，返回 false 即某层未删净。 */
+       delBookFiles 现在按每层真删结果返回 ok，返回 false 即某层未删净。 */
     try { if ((await BF.store.delBookFiles(id)) === false) _failed++; } catch (e) { _failed++; BF.log.warn('清理整书正文副本失败（' + id + '）：' + (e && e.message)); }
     BF.store.lsRemove(BF.store.K.SCROLL_ + id);
     BF.store.lsRemove(BF.store.K.PROGRESS_ + id);

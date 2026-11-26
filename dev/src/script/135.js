@@ -639,7 +639,7 @@ BF.settingsUI.render = function (opt) {
       try { BF.app.sel.scan(host); } catch (e) { BF.err.report('sel.scan:' + sec.id, e); }
       if (host.querySelector('[data-alloc-usage]')) { try { BF.settingsUI._fillAllocUsage(); } catch (e) {} }
       if (host.querySelector('[data-sp-rows]')) { try { BF.settingsUI._fillStoragePanel(); } catch (e) {} }
-      /* P2-7：打开数据页时静默尝试恢复上次绑定的根目录（权限已过期就自动回落内置，不打扰用户）。 */
+      /* 打开数据页时静默尝试恢复上次绑定的根目录（权限已过期就自动回落内置，不打扰用户）。 */
       if (host.querySelector('[data-root-pick]') && BF.fsync && BF.fsync.restoreRootHandle) {
         Promise.resolve(BF.fsync.restoreRootHandle()).then(function (r) { if (r) { try { BF.settingsUI._fillStoragePanel(); } catch (e) {} } }).catch(function () {});
       }

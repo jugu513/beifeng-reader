@@ -537,7 +537,7 @@ BF.library._listOpfsBookIds = async function () {
     const root = await BF.fsync._dir('');
     const books = await root.getDirectoryHandle('books', { create: false });
     const out = [];
-    /* P2-8 结构隔离加固：books/ 下只认「书 id 目录」。四类新分区（annotations/cache/backups）
+    /* 结构隔离加固：books/ 下只认「书 id 目录」。四类新分区（annotations/cache/backups）
        与 books 平级、本不该出现在 books/ 里；但万一将来有人误建同名子目录，这里用保留名
        再挡一道——绝不把保留目录名当成「无主的书」交给 repairOrphans 删掉（地雷①/C-6）。
        isReservedOpfsDir 缺失时（老构建）退化为不过滤，行为与改造前一致，零破坏。 */

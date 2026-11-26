@@ -3,8 +3,8 @@
    提示符切到 C:\beifeng\ops，解锁 ops 命令（bat / ping / off）。
    bat 的职责：在本机起「本地预览服务（现读母本，8791）」与「本机转发器（8792）」。
    bat 自包含：不依赖 tool 目录或任何外部脚本，两个引擎都内嵌在 bat 尾部自解出——
-   有 Node → 内嵌 Node 引擎（serve 行为 = tool/serve.mjs：现读母本、pre/ 白名单；
-             proxy = tool/proxy.mjs 正主逻辑）；
+   有 Node → 内嵌 Node 引擎（serve：现读母本、pre/ 白名单；
+             proxy：本机转发器的正主逻辑）；
    无 Node → Python 兜底引擎（stdlib only，行为同上）。
    bat 只带运行所需的两份引擎，测试工具不进来。
    bat 全文由母本生成（batSource）：端口、路径约定只在这里写一份。
@@ -23,7 +23,7 @@ BF.ops = {
     return String.raw`@echo off
 rem ============================================================
 rem 北风 - 本地工具启动器（由北风终端 beifeng666 命令导出）
-rem 自包含：不依赖 tool 目录或任何外部脚本，引擎内嵌在本文件尾部。
+rem 自包含：不依赖任何外部脚本，引擎内嵌在本文件尾部。
 rem   有 Node → 自解出内嵌 Node 引擎（预览=现读母本；转发器=正主逻辑）
 rem   无 Node → 自解出 Python 兜底引擎（stdlib only）
 rem 放置：任意位置双击即可；它会自动找旁边的母本，找不到会让你拖进来。
@@ -175,7 +175,7 @@ if not exist "%PYF%" (
 exit /b 0
 
 ::NODE_ENGINE_BELOW
-/* 北风内嵌 Node 引擎（由 beifeng-tools.bat 自解出；行为对齐 tool/serve.mjs 与 tool/proxy.mjs）
+/* 北风内嵌 Node 引擎（由 beifeng-tools.bat 自解出；行为与本地预览服务、本机转发器一致）
    用法：node bf_node_tools.mjs serve <母本> [起始端口]  |  proxy [起始端口]
    serve：每次请求现读母本按 text/html 返回（母本即真相，无副本）；只绑 127.0.0.1；
           pre/ 下的留档文件按白名单正则放行（basename 吃掉穿越）。

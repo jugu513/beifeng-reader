@@ -296,7 +296,7 @@ BF.tts.edge = (function () {
      任一失败/断开即弃连接，下次请求重新握手（含 skew 重试路径，gec 变了即开新连接）。
      本机端点 14/14 全 403（环境策略拒绝），无法对真端点验证；
      连接身份化、队列串行、reqId 过滤、取消、截断判定这几条用
-     tool/tests/mock-edge-wss.mjs（本地 mock 服务端，零依赖）配合页面内探针验过，不依赖微软。 */
+     本地 mock 服务端（零依赖）配合页面内探针验过，不依赖微软。 */
   let _edgeConn = null;            /* 复用的长连接：{ ws, voice, gec, connId, expiresAt, _cur } */
   let _edgeOpening = null;         /* 并发握手去重：预取与当前句同时到，只握一次 */
   const _edgeQ = [];               /* 待发请求队列：单槽会被后一个请求覆盖，前一个只能等满 30s 超时 */

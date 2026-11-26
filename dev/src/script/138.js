@@ -152,7 +152,7 @@ BF.settingsUI.register('ai', 5, function () {
     ) +
     '</div>';
 });
-/* 存储面板（A+C 的 P1 列表 → P3 收口）：一张表逐区列「后端 / 条目 / 占用 / 可否迁移 / 承重」。
+/* 存储面板：一张表逐区列「后端 / 条目 / 占用 / 可否迁移 / 承重」。
    每类一行下拉（非法项不列出＝置灰不可用）+ 迁移按钮；承重键只给镜像开关（主存恒 LS，C-2）。
    顶部：quotaLevel 三态横幅 + Agent 智能规划入口 + 自选根目录句柄（不支持则禁用并说明）。 */
 BF.settingsUI._storageAllocHtml = function () {
@@ -176,7 +176,7 @@ BF.settingsUI._storageAllocHtml = function () {
   /* 表头：后端 / 条目 / 占用 / 可否迁移 / 承重 */
   html += '<div class="bf-sp-grid-h">' +
     '<span>内容类别</span><span>后端 / 设置</span><span>条目</span><span>占用</span><span>承重</span></div>';
-  /* 表体：每类一行（沿用 P1 的 data-alloc / data-alloc-usage / data-alloc-migrate / data-mirror） */
+  /* 表体：每类一行（data-alloc / data-alloc-usage / data-alloc-migrate / data-mirror） */
   html += '<div data-sp-rows>';
   (st.ALLOC_CATEGORIES || []).forEach(function (cat) {
     const opts = (st.ALLOC_CANDIDATES[cat] || []).map(function (m) {
@@ -203,7 +203,7 @@ BF.settingsUI._storageAllocHtml = function () {
       '<span class="bf-sp-yes">是</span></div>';
   });
   html += '</div>';
-  /* 根目录句柄（P2-7）：支持则给「选择存储位置 / 恢复内置」，不支持则禁用并如实说明 */
+  /* 根目录句柄：支持则给「选择存储位置 / 恢复内置」，不支持则禁用并如实说明 */
   html += '<div class="bf-sp-root">' +
     '<span class="bf-sp-dim">存储位置</span>' +
     '<button class="btn btn-xs" data-root-pick' + (cap ? '' : ' disabled title="当前浏览器不支持自选目录"') + '>选择根目录…</button>' +

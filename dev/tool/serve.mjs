@@ -32,9 +32,9 @@ const server = http.createServer((req, res) => {
       body = fs.readFileSync(TXT);
     } else if (url === '/sim') {
       /* 界面实验室：纯界面与交互的壳，不读写任何存储，与母本同源但互不影响。
-         接手包里没有 ui-lab/，所以这里要说人话，别把 ENOENT 路径当错误页甩给人看。 */
+         本包没有 ui-lab/，所以这里要说人话，别把 ENOENT 路径当错误页甩给人看。 */
       const sim = path.join(path.dirname(TXT), '..', 'ui-lab', 'sim.html');
-      if (!fs.existsSync(sim)) { res.writeHead(404, { 'content-type': type }).end('<h3>没有 ui-lab/sim.html</h3><p>界面实验室不在本包里（接手包只含母本与验收工具）。阅读器本体不受影响，从 / 进。</p>'); return; }
+      if (!fs.existsSync(sim)) { res.writeHead(404, { 'content-type': type }).end('<h3>没有 ui-lab/sim.html</h3><p>界面实验室不在本包里（本包只含母本与验收工具）。阅读器本体不受影响，从 / 进。</p>'); return; }
       body = fs.readFileSync(sim);
     } else if (url === '/pre' || url === '/pre/') {
       /* 留档目录页：不必记住文件名也能点开改前/改后两份对比 */

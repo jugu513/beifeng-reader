@@ -21,11 +21,13 @@ const FILES = [
   '启动北风.bat',
   '安装环境.bat',
   '校验文件.bat',
+  '创建桌面快捷方式.bat',
+  '北风.ico',
   'README.md',
   'LICENSE',
 ];
 /* 官方指纹：与 README、校验文件.bat 保持一致；改成品必须三处同步（selfcheck 八份闸门会盯成品）。 */
-const EXPECT_MD5 = '3bb0502f5280f4aefe2b7f74f8022a6a';
+const EXPECT_MD5 = '8e5d5d98c6d6c6297f396d9798ac59ab';
 
 const md5 = (p) => crypto.createHash('md5').update(fs.readFileSync(p)).digest('hex');
 

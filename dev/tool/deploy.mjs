@@ -8,7 +8,7 @@
      dev 根 .html · work/.txt · work/.html · target/.txt · target/.html
      （以上五份为闸门契约副本）+ 仓库根发布成品两份：
      仓库根/北风V0.0.1-alpha.html（用户下载的完整包）· 仓库根/index.html（Pages 入口）
-   这样彻底消灭「改了母本忘了 html / work 陈旧 / target 与根不同步 / 发布成品漂移」这类交接事故——
+   这样彻底消灭「改了母本忘了 html / work 陈旧 / target 与根不同步 / 发布成品漂移」这类同步事故——
    编辑只动 dev 根 txt，发布只跑 deploy，八份永远一致。selfcheck 开头会自动跑本脚本。
 
    幂等：内容相同的派生物跳过写入，只报「已一致」；反复跑不改动任何字节。

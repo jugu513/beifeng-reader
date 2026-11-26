@@ -1039,7 +1039,7 @@ BF.store = (function () {
     },
     async ugcDelBook(bookId) {
       try { return await idbUGCDelBook(bookId) !== false; }
-      catch (e) { BF.err.report('ugcDelBook', e); return false; }   /* 真删失败不再谎报成功（P1-3） */
+      catch (e) { BF.err.report('ugcDelBook', e); return false; }   /* 真删失败不再谎报成功 */
     },
     async loadBody(bookId) {
       /* 首选层按 body 分配决定；首选读不到仍回退另一层（懒迁移的读回退，R-1 旧书可读）。
@@ -1085,7 +1085,7 @@ BF.store = (function () {
       try { await idbKeyPut('body:' + bookId, text); return true; } catch (e) { return false; }
     },
     async delBookFiles(bookId) {
-      /* 三层各删一次，任一层真删失败 → ok=false（P1-3）：删书回执据此报道「部分未删」，
+      /* 三层各删一次，任一层真删失败 → ok=false：删书回执据此报道「部分未删」，
          不再吞异常仍 return true 谎报「已彻底删除」。 */
       let ok = true;
       if (BF.fsync && BF.fsync.available) { try { await BF.fsync.remove('books/' + bookId); } catch (e) { ok = false; BF.err.report('delBookFiles.opfs', e); } }

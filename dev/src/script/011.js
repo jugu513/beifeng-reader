@@ -20,7 +20,7 @@ BF.fsync = (function () {
     return d;
   }
 
-  /* ===== P2-6 OPFS 类别文件夹布局（C 的目录层）=================================
+  /* ===== OPFS 类别文件夹布局（C 的目录层）=================================
      固定四类根下平级目录：books（正文）/annotations（标注镜像）/cache（可重建缓存）/
      backups（备份）。四类均为根下「单段名」，刻意不嵌套进 books/：
      孤儿扫描只列 books/ 一层目录名当书 id（BF.library._listOpfsBookIds），
@@ -58,7 +58,7 @@ BF.fsync = (function () {
     return out;
   }
 
-  /* ===== P2-7 根目录句柄绑定（用户自选存储位置）=================================
+  /* ===== 根目录句柄绑定（用户自选存储位置）=================================
      支持 showDirectoryPicker 时可把 OPFS 逻辑根改绑到用户选的目录；不支持/取消/权限
      失效时静默回落内置 OPFS，绝不承诺做不到的事。句柄存独立 IDB 小库（不依赖
      BF.store，避免 initBackend 里 store 尚未构造完的循环依赖）。 */
@@ -227,7 +227,7 @@ BF.fsync = (function () {
     get error() { return _err; },
     get externalRoot() { return _externalRoot; },
     ok: ok, writeFile: writeFile, readFile: readFile, remove: remove, rename: rename, stageWrite: stageWrite, ls: ls, _dir: _dir,
-    /* P2-6 类别文件夹 + P2-7 根目录句柄 */
+    /* OPFS 类别文件夹 + 根目录句柄 */
     OPFS_DIRS: OPFS_DIRS, isReservedOpfsDir: isReservedOpfsDir, dirPath: dirPath, ensureLayout: ensureLayout, listCategory: listCategory,
     rootHandleSupported: rootHandleSupported, bindRootHandle: bindRootHandle, restoreRootHandle: restoreRootHandle, clearRootHandle: clearRootHandle
   };

@@ -6699,7 +6699,7 @@ BF.fsync = (function () {
     return d;
   }
 
-  /* ===== P2-6 OPFS 类别文件夹布局（C 的目录层）=================================
+  /* ===== OPFS 类别文件夹布局（C 的目录层）=================================
      固定四类根下平级目录：books（正文）/annotations（标注镜像）/cache（可重建缓存）/
      backups（备份）。四类均为根下「单段名」，刻意不嵌套进 books/：
      孤儿扫描只列 books/ 一层目录名当书 id（BF.library._listOpfsBookIds），
@@ -6737,7 +6737,7 @@ BF.fsync = (function () {
     return out;
   }
 
-  /* ===== P2-7 根目录句柄绑定（用户自选存储位置）=================================
+  /* ===== 根目录句柄绑定（用户自选存储位置）=================================
      支持 showDirectoryPicker 时可把 OPFS 逻辑根改绑到用户选的目录；不支持/取消/权限
      失效时静默回落内置 OPFS，绝不承诺做不到的事。句柄存独立 IDB 小库（不依赖
      BF.store，避免 initBackend 里 store 尚未构造完的循环依赖）。 */
@@ -6906,7 +6906,7 @@ BF.fsync = (function () {
     get error() { return _err; },
     get externalRoot() { return _externalRoot; },
     ok: ok, writeFile: writeFile, readFile: readFile, remove: remove, rename: rename, stageWrite: stageWrite, ls: ls, _dir: _dir,
-    /* P2-6 类别文件夹 + P2-7 根目录句柄 */
+    /* OPFS 类别文件夹 + 根目录句柄 */
     OPFS_DIRS: OPFS_DIRS, isReservedOpfsDir: isReservedOpfsDir, dirPath: dirPath, ensureLayout: ensureLayout, listCategory: listCategory,
     rootHandleSupported: rootHandleSupported, bindRootHandle: bindRootHandle, restoreRootHandle: restoreRootHandle, clearRootHandle: clearRootHandle
   };
@@ -7981,7 +7981,7 @@ BF.store = (function () {
     },
     async ugcDelBook(bookId) {
       try { return await idbUGCDelBook(bookId) !== false; }
-      catch (e) { BF.err.report('ugcDelBook', e); return false; }   /* 真删失败不再谎报成功（P1-3） */
+      catch (e) { BF.err.report('ugcDelBook', e); return false; }   /* 真删失败不再谎报成功 */
     },
     async loadBody(bookId) {
       /* 首选层按 body 分配决定；首选读不到仍回退另一层（懒迁移的读回退，R-1 旧书可读）。
@@ -8027,7 +8027,7 @@ BF.store = (function () {
       try { await idbKeyPut('body:' + bookId, text); return true; } catch (e) { return false; }
     },
     async delBookFiles(bookId) {
-      /* 三层各删一次，任一层真删失败 → ok=false（P1-3）：删书回执据此报道「部分未删」，
+      /* 三层各删一次，任一层真删失败 → ok=false：删书回执据此报道「部分未删」，
          不再吞异常仍 return true 谎报「已彻底删除」。 */
       let ok = true;
       if (BF.fsync && BF.fsync.available) { try { await BF.fsync.remove('books/' + bookId); } catch (e) { ok = false; BF.err.report('delBookFiles.opfs', e); } }
@@ -13443,13 +13443,13 @@ BF.app._doDelete = async function (id) {
     if (await BF.store.mutate(BF.store.K.NOTES, function (arr) { return (arr || []).filter(x => x && x.bookId !== id); }) === false) _failed++;
     /* 新拓扑：同步清理 IDB 'ugc' 库里该书的所有标注（划线/书签/生词/便签）。
        不进 mutate 队列——'ugc' 是按书维度的独立索引，整书删除用 ugcDelBook 一次性清。
-       P1-3：ugcDelBook 真删失败返回 false，此处据实计入 failed —— IDB 副本删不掉会残留孤儿，
+       ugcDelBook 真删失败返回 false，此处据实计入 failed —— IDB 副本删不掉会残留孤儿，
        不能再像旧版那样吞掉谎报成功（LS 那四张表由上方 mutate 负责，这里只负责 IDB 副本这一份）。 */
     try { if ((await BF.store.ugcDelBook(id)) === false) _failed++; } catch (e) { _failed++; BF.log.warn('清理 IDB 标注副本失败（' + id + '）：' + (e && e.message)); }
     /* 整书正文副本（OPFS books/<id>/body.txt，或降级时 kv 的 body:<id>）也随书删掉：
        只清章节表的话，这份整本副本没有任何界面入口，只会一直占着磁盘。
        计入 failed 与其它级联同一口径 —— 清不掉要让调用方知道，不能谎报删干净。
-       P1-3：delBookFiles 现在按每层真删结果返回 ok，返回 false 即某层未删净。 */
+       delBookFiles 现在按每层真删结果返回 ok，返回 false 即某层未删净。 */
     try { if ((await BF.store.delBookFiles(id)) === false) _failed++; } catch (e) { _failed++; BF.log.warn('清理整书正文副本失败（' + id + '）：' + (e && e.message)); }
     BF.store.lsRemove(BF.store.K.SCROLL_ + id);
     BF.store.lsRemove(BF.store.K.PROGRESS_ + id);
@@ -14667,7 +14667,7 @@ BF.library._listOpfsBookIds = async function () {
     const root = await BF.fsync._dir('');
     const books = await root.getDirectoryHandle('books', { create: false });
     const out = [];
-    /* P2-8 结构隔离加固：books/ 下只认「书 id 目录」。四类新分区（annotations/cache/backups）
+    /* 结构隔离加固：books/ 下只认「书 id 目录」。四类新分区（annotations/cache/backups）
        与 books 平级、本不该出现在 books/ 里；但万一将来有人误建同名子目录，这里用保留名
        再挡一道——绝不把保留目录名当成「无主的书」交给 repairOrphans 删掉（地雷①/C-6）。
        isReservedOpfsDir 缺失时（老构建）退化为不过滤，行为与改造前一致，零破坏。 */
@@ -23356,7 +23356,7 @@ BF.tts.edge = (function () {
      任一失败/断开即弃连接，下次请求重新握手（含 skew 重试路径，gec 变了即开新连接）。
      本机端点 14/14 全 403（环境策略拒绝），无法对真端点验证；
      连接身份化、队列串行、reqId 过滤、取消、截断判定这几条用
-     tool/tests/mock-edge-wss.mjs（本地 mock 服务端，零依赖）配合页面内探针验过，不依赖微软。 */
+     本地 mock 服务端（零依赖）配合页面内探针验过，不依赖微软。 */
   let _edgeConn = null;            /* 复用的长连接：{ ws, voice, gec, connId, expiresAt, _cur } */
   let _edgeOpening = null;         /* 并发握手去重：预取与当前句同时到，只握一次 */
   const _edgeQ = [];               /* 待发请求队列：单槽会被后一个请求覆盖，前一个只能等满 30s 超时 */
@@ -26697,8 +26697,8 @@ BF.ai.proxyBat = function () {
    提示符切到 C:\beifeng\ops，解锁 ops 命令（bat / ping / off）。
    bat 的职责：在本机起「本地预览服务（现读母本，8791）」与「本机转发器（8792）」。
    bat 自包含：不依赖 tool 目录或任何外部脚本，两个引擎都内嵌在 bat 尾部自解出——
-   有 Node → 内嵌 Node 引擎（serve 行为 = tool/serve.mjs：现读母本、pre/ 白名单；
-             proxy = tool/proxy.mjs 正主逻辑）；
+   有 Node → 内嵌 Node 引擎（serve：现读母本、pre/ 白名单；
+             proxy：本机转发器的正主逻辑）；
    无 Node → Python 兜底引擎（stdlib only，行为同上）。
    bat 只带运行所需的两份引擎，测试工具不进来。
    bat 全文由母本生成（batSource）：端口、路径约定只在这里写一份。
@@ -26717,7 +26717,7 @@ BF.ops = {
     return String.raw`@echo off
 rem ============================================================
 rem 北风 - 本地工具启动器（由北风终端 beifeng666 命令导出）
-rem 自包含：不依赖 tool 目录或任何外部脚本，引擎内嵌在本文件尾部。
+rem 自包含：不依赖任何外部脚本，引擎内嵌在本文件尾部。
 rem   有 Node → 自解出内嵌 Node 引擎（预览=现读母本；转发器=正主逻辑）
 rem   无 Node → 自解出 Python 兜底引擎（stdlib only）
 rem 放置：任意位置双击即可；它会自动找旁边的母本，找不到会让你拖进来。
@@ -26869,7 +26869,7 @@ if not exist "%PYF%" (
 exit /b 0
 
 ::NODE_ENGINE_BELOW
-/* 北风内嵌 Node 引擎（由 beifeng-tools.bat 自解出；行为对齐 tool/serve.mjs 与 tool/proxy.mjs）
+/* 北风内嵌 Node 引擎（由 beifeng-tools.bat 自解出；行为与本地预览服务、本机转发器一致）
    用法：node bf_node_tools.mjs serve <母本> [起始端口]  |  proxy [起始端口]
    serve：每次请求现读母本按 text/html 返回（母本即真相，无副本）；只绑 127.0.0.1；
           pre/ 下的留档文件按白名单正则放行（basename 吃掉穿越）。
@@ -37488,7 +37488,7 @@ BF.settingsUI.render = function (opt) {
       try { BF.app.sel.scan(host); } catch (e) { BF.err.report('sel.scan:' + sec.id, e); }
       if (host.querySelector('[data-alloc-usage]')) { try { BF.settingsUI._fillAllocUsage(); } catch (e) {} }
       if (host.querySelector('[data-sp-rows]')) { try { BF.settingsUI._fillStoragePanel(); } catch (e) {} }
-      /* P2-7：打开数据页时静默尝试恢复上次绑定的根目录（权限已过期就自动回落内置，不打扰用户）。 */
+      /* 打开数据页时静默尝试恢复上次绑定的根目录（权限已过期就自动回落内置，不打扰用户）。 */
       if (host.querySelector('[data-root-pick]') && BF.fsync && BF.fsync.restoreRootHandle) {
         Promise.resolve(BF.fsync.restoreRootHandle()).then(function (r) { if (r) { try { BF.settingsUI._fillStoragePanel(); } catch (e) {} } }).catch(function () {});
       }
@@ -38456,7 +38456,7 @@ BF.settingsUI.register('ai', 5, function () {
     ) +
     '</div>';
 });
-/* 存储面板（A+C 的 P1 列表 → P3 收口）：一张表逐区列「后端 / 条目 / 占用 / 可否迁移 / 承重」。
+/* 存储面板：一张表逐区列「后端 / 条目 / 占用 / 可否迁移 / 承重」。
    每类一行下拉（非法项不列出＝置灰不可用）+ 迁移按钮；承重键只给镜像开关（主存恒 LS，C-2）。
    顶部：quotaLevel 三态横幅 + Agent 智能规划入口 + 自选根目录句柄（不支持则禁用并说明）。 */
 BF.settingsUI._storageAllocHtml = function () {
@@ -38480,7 +38480,7 @@ BF.settingsUI._storageAllocHtml = function () {
   /* 表头：后端 / 条目 / 占用 / 可否迁移 / 承重 */
   html += '<div class="bf-sp-grid-h">' +
     '<span>内容类别</span><span>后端 / 设置</span><span>条目</span><span>占用</span><span>承重</span></div>';
-  /* 表体：每类一行（沿用 P1 的 data-alloc / data-alloc-usage / data-alloc-migrate / data-mirror） */
+  /* 表体：每类一行（data-alloc / data-alloc-usage / data-alloc-migrate / data-mirror） */
   html += '<div data-sp-rows>';
   (st.ALLOC_CATEGORIES || []).forEach(function (cat) {
     const opts = (st.ALLOC_CANDIDATES[cat] || []).map(function (m) {
@@ -38507,7 +38507,7 @@ BF.settingsUI._storageAllocHtml = function () {
       '<span class="bf-sp-yes">是</span></div>';
   });
   html += '</div>';
-  /* 根目录句柄（P2-7）：支持则给「选择存储位置 / 恢复内置」，不支持则禁用并如实说明 */
+  /* 根目录句柄：支持则给「选择存储位置 / 恢复内置」，不支持则禁用并如实说明 */
   html += '<div class="bf-sp-root">' +
     '<span class="bf-sp-dim">存储位置</span>' +
     '<button class="btn btn-xs" data-root-pick' + (cap ? '' : ' disabled title="当前浏览器不支持自选目录"') + '>选择根目录…</button>' +
@@ -39300,7 +39300,7 @@ BF.settingsUI.updateLogBlock = function () {
       try { BF.ai.showStoragePlan(); } catch (e) { BF.noti.error('规划失败：' + ((e && e.message) || e)); }
       return;
     }
-    /* P2-7：选择根目录句柄（须在用户手势里调用）。 */
+    /* 选择根目录句柄（须在用户手势里调用）。 */
     if (t.closest('[data-root-pick]')) {
       if (!BF.fsync || !BF.fsync.bindRootHandle) return;
       Promise.resolve(BF.fsync.bindRootHandle()).then(function (r) {
