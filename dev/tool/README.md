@@ -23,6 +23,16 @@ node tool/selfcheck.mjs --quick  # 日常自查，秒级
 
 改代码的正确顺序：编辑 `src/` → `node tool/build.mjs` → `node tool/deploy.mjs`。或者直接跑 `selfcheck`，前两步它会自动做。
 
+## 打包（面向使用者的发布产物）
+
+| 脚本 | 产出 |
+|---|---|
+| `pack.mjs` | `dist/北风V0.0.1-alpha-win.zip` 绿色免安装包（成品 + 4 个 bat + 图标 + README + LICENSE） |
+| `pack-installer.mjs` + `installer.nsi` | `dist/北风V0.0.1-alpha-Setup.exe` Windows 安装包（每用户安装、快捷方式、卸载项） |
+| `make-icon.py` | 根目录 `北风.ico`（从模板内联 favicon 同源 SVG 渲染，需 `librsvg2-bin` + Pillow） |
+
+依赖：`zip`/`unzip`、`makensis`（apt 装 nsis）；`dist/` 不入库。三个打包脚本都会**先核对成品指纹再打包**，指纹写死在脚本顶部的 `EXPECT_MD5`——成品一改要同步四处：`pack.mjs`、`pack-installer.mjs`、根目录 `校验文件.bat`、`README.md`（selfcheck 的八份闸门盯成品本身，但不会替你改这四处）。
+
 ## 闸门
 
 | 脚本 | 查什么 |
