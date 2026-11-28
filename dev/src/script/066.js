@@ -250,7 +250,13 @@ BF.reader.updateRemain = function () {
      一屏能装下的短章开章即 100%，底栏立刻显示「本章已读完」并弹提示；
      只有真正滚到底才是 100%。分页模式下滚动量无意义，按页码算。 */
   let pct;
-  if (BF.reader.pageModeActive() && (BF.reader.state.pkPages || []).length) {
+  const _imgBook = !!(BF.reader.state.book && BF.reader.state.book.img);
+  if (_imgBook) {
+    /* 图片书按页算：一屏一张图时 scrollHeight≈clientHeight，span<=0 会让
+       每一页都判成 100%，章末卡页页弹。按页码推，只在最后一页收口。 */
+    const _tot = Math.max(1, BF.reader.state.book.totalChapters || 1);
+    pct = Math.min(100, Math.round(((BF.appState.currentChapterIdx || 0) + 1) / _tot * 100));
+  } else if (BF.reader.pageModeActive() && (BF.reader.state.pkPages || []).length) {
     pct = Math.min(100, Math.round(((BF.reader.state.pkPageIdx || 0) + 1) / BF.reader.state.pkPages.length * 100));
   } else {
     const span = total - wrap.clientHeight;
@@ -297,8 +303,10 @@ BF.reader.updateRemain = function () {
   }
   const leftWords = Math.max(0, words - readWords);
   const leftMin = wpm > 0 ? Math.max(1, Math.round(leftWords / wpm)) : 0;
-  el.textContent = pct >= 99 ? '本章已读完'
-    : (wpm > 0 ? '本章剩余约 ' + leftMin + ' 分钟 · ' + wpm + ' 字/分' : '本章剩余约 — · 测算中');
+  el.textContent = _imgBook
+    ? ('第 ' + ((BF.appState.currentChapterIdx || 0) + 1) + (BF.reader.state.book.totalChapters ? ' / ' + BF.reader.state.book.totalChapters : '') + ' 页')
+    : (pct >= 99 ? '本章已读完'
+      : (wpm > 0 ? '本章剩余约 ' + leftMin + ' 分钟 · ' + wpm + ' 字/分' : '本章剩余约 — · 测算中'));
   /* 读完提示：章末卡片（chap-end-card，下方）已表达「本章读完，继续往下读？」，
      不单独发一条进通知历史的 toast，避免每读完一章都往通知中心塞一条。 */
   /* 章末卡：本章读到末尾时浮现「下一章」入口，末章显示「全书读完」；

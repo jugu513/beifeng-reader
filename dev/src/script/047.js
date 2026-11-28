@@ -23,7 +23,17 @@ BF.library.pickAndImport = async function () {
     try {
       handles = await window.showOpenFilePicker({
         multiple: true,
-        types: [{ description: '文本 / 书籍', accept: { 'text/plain': ['.txt', '.text'], 'application/json': ['.json'] } }],
+        types: [{ description: '文本 / 书籍', accept: {
+          'text/plain': ['.txt', '.text', '.md', '.markdown'],
+          'application/json': ['.json'],
+          'application/epub+zip': ['.epub'],
+          'application/pdf': ['.pdf'],
+          'application/x-mobipocket-ebook': ['.mobi', '.azw', '.azw3'],
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+          'text/html': ['.html', '.htm', '.xhtml'],
+          'application/xml': ['.fb2'],
+          'application/x-cbz': ['.cbz'],
+        } }],
       });
     } catch (e) {
       if (e && e.name === 'AbortError') return;   /* 用户取消，静默 */
@@ -237,33 +247,20 @@ BF.library.importFile = async function (file, opts) {
   /* 读缓冲后检查中止（尚未解码，无状态需清理） */
   if (_aborted()) return { status: 'aborted' };
 
-  /* 二进制格式分流（L13/L14/L15）：容器不进「文本解码」那一步——那是给纯文本定的；
+  /* 二进制格式分流（L16–L21）：容器不进「文本解码」那一步——那是给纯文本定的；
      但抽出来的纯文本一律过乱码判据（扫描件/坏编码抽出来的是乱码，别静默入库）。
+     分流、标签、解析、分章四件事都收在 BF.fmt 里，与在线通道同一张表。
      解析失败如实报错，不产出半成品书。 */
   let chapters = null;
   let enc = '';
-  const _binFmt = (BF.epub && BF.epub.sniff(buf, rawName)) ? 'epub'
-    : (BF.mobi && BF.mobi.sniff(buf, rawName)) ? 'mobi'
-    : (BF.pdf && BF.pdf.sniff(buf, rawName)) ? 'pdf' : '';
+  const _binFmt = BF.fmt.sniff(buf, rawName);
   if (_binFmt) {
-    const _label = _binFmt === 'epub' ? 'EPUB' : _binFmt === 'mobi' ? 'MOBI' : 'PDF';
+    const _label = BF.fmt.label(_binFmt);
     if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 ' + _label + '《' + name + '》…');
     try {
-      if (_binFmt === 'epub') {
-        const ep = await BF.epub.parse(buf);
-        chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
-        if (!chapters.length) throw new Error('没有可读正文');
-      } else {
-        const bp = _binFmt === 'mobi' ? await BF.mobi.parse(buf) : await BF.pdf.parse(buf);
-        const bText = bp && bp.text;
-        if (!bText || !bText.trim()) throw new Error('没有可读正文');
-        const _gB = BF.library.garbleCheck(bText, '文件');
-        if (_gB.blocked) throw new Error(_gB.report);
-        if (_gB.suspect) BF.library.garbleNotice(_gB.report);
-        if (BF.app && BF.app.setImport) BF.app.setImport(30, '分章《' + name + '》…');
-        chapters = await BF.smart.chapters(bText);
-        if (!chapters.length) throw new Error('分章结果为空');
-      }
+      const parsed = await BF.fmt.parse(_binFmt, buf);
+      if (BF.app && BF.app.setImport) BF.app.setImport(24, '分章《' + name + '》…');
+      chapters = await BF.fmt.chapterize(_binFmt, parsed, '文件');
     } catch (eBin) {
       BF.err.report('import.' + _binFmt, eBin);
       BF.noti.warn('《' + name + '》' + _label + ' 解析失败：' + ((eBin && eBin.message) || eBin));
@@ -338,6 +335,10 @@ BF.library.importFile = async function (file, opts) {
     wordCount: chapters.reduce((s, c) => s + (c.content || '').length, 0),
     chapterWords: chapters.map(c => (c.content || '').length),  /* 每章字数：进度按字数计算；无则回退章数 */
   };
+  /* 图片书（CBZ）：正文槽留空，图片存在章节记录的 img 字段里。
+     书级 img 是读取侧的开关——getChapterText 短路成空串，搜索 / 朗读 /
+     AI 摘要 / 导出这些只认文本的通路自动跳过；阅读器改走 getChapterImage 取图。 */
+  if (chapters.some(function (c) { return c && c.img; })) book.img = 1;
   /* 正文入库前取消——尚未持久化
      任何状态，直接停止 */
   if (_aborted()) return { status: 'aborted' };

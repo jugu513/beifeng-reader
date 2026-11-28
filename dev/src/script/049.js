@@ -1,5 +1,9 @@
 /* ===== L1. 读取章节文本 ===== */
 BF.library.getChapterText = async function (book, idx) {
+  /* 图片书（CBZ）没有文本正文：正文槽本来就是空串，图片存在记录的 img 字段里。
+     在入口短路，搜索 / 朗读 / AI 摘要 / 导出这些只认文本的通路不必逐个改造
+     就会自动跳过图片书，也不用为每一页图片白做一次 IDB 读。取图走 getChapterImage。 */
+  if (book && book.img) return '';
   try {
     /* 命中章节预取缓存（LRU，最多 9 章）：省去一次 IDB 读 + gzip 解压 */
     const _pk = book.id + '_' + idx;
@@ -31,6 +35,21 @@ BF.library.getChapterText = async function (book, idx) {
     BF.log && BF.log.warn('章节文本读取为空：' + book.id + '_' + idx + '（IDB 无记录且无本地兜底）');
   }
   return ls || '';
+};
+/* 图片书取图（CBZ）：图片与正文存同一张章节记录——正文槽是空串，图在 img 字段。
+   回退顺序与 getChapterText 对齐：IDB 没有（当时落到了 OPFS）就去 OPFS 捞。
+   LS 层不承载图片（写入侧对图片批次显式跳过），故这里不查 LS，
+   也就不必把「LS 里只有空正文」当成图片读失败来报警。 */
+BF.library.getChapterImage = async function (book, idx) {
+  try {
+    const item = await BF.store.idbGet(BF.store.K.CHAPTERS, book.id + '_' + idx);
+    if (item && item.img) return item.img;
+  } catch (e) { BF.err.report('getChapterImage.idb', e); }
+  try {
+    const op = await BF.library._readOpfsChapter(book.id, idx);
+    if (op && op.img) return op.img;
+  } catch (e) { BF.err.report('getChapterImage.opfs', e); }
+  return '';
 };
 /* 导出用的正文：分章产物本身就以章标题行开头（`第1章 风起\n\n正文…`），
    导出时再拼一次标题就成了每章两遍；用户「导出 → 再导入」时重复会永久留在正文里

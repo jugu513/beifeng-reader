@@ -5,6 +5,9 @@ BF.reader.pageModeActive = function () {
      reconcilePageMode 挂在 SETTINGS 总线上，mrCanvas/readerMode 变动会重算本函数，
      故进出 Canvas 自动切回，无需硬禁用开关、不改存档值。 */
   if (BF.mr && BF.mr.canvas && BF.mr.canvas.active && BF.mr.canvas.active()) return false;
+  /* 图片书（CBZ）让位：分页要按段落切页，图片章没有段落——
+     切了就是 0 页，页面停在上一章的分页残影上。存档值不动，只在这里放行滚动。 */
+  if (BF.reader.state && BF.reader.state.book && BF.reader.state.book.img) return false;
   return (BF.settings.get('readerMode') || 'scroll') === 'page';
 };
 /* 长段落在一页里的落点：从满页位置往回找最近的句末标点（回看 20% 宽度）。

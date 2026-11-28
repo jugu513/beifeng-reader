@@ -9,7 +9,7 @@
  },
  "dist": {
   "core": 32,
-  "domain": 64,
+  "domain": 70,
   "boot": 24,
   "ui": 64
  },
@@ -1117,6 +1117,42 @@
    "layer": "domain",
    "basis": "def:pdf",
    "title": "L15. PDF 文本抽取（零依赖最小实现，不面向扫描件）"
+  },
+  {
+   "n": "184",
+   "layer": "domain",
+   "basis": "def:fmt",
+   "title": "L16. 导入格式注册表（文件与在线两条通道共用的唯一分流点）"
+  },
+  {
+   "n": "185",
+   "layer": "domain",
+   "basis": "def:docx",
+   "title": "L17. DOCX 导入（zip + document.xml，按标题样式分章）"
+  },
+  {
+   "n": "186",
+   "layer": "domain",
+   "basis": "def:html",
+   "title": "L18. HTML 导入（剥壳取正文，h1-h3 分章）"
+  },
+  {
+   "n": "187",
+   "layer": "domain",
+   "basis": "def:fb2",
+   "title": "L19. FB2 导入（XML section 分章，含 .fb2.zip）"
+  },
+  {
+   "n": "188",
+   "layer": "domain",
+   "basis": "def:markdown",
+   "title": "L20. Markdown 导入（ATX 标题分章 + 记号清洗）"
+  },
+  {
+   "n": "189",
+   "layer": "domain",
+   "basis": "def:cbz",
+   "title": "L21. CBZ 图片书（zip 图片包，每图一页）"
   }
  ]
 }

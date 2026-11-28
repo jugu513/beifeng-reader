@@ -503,6 +503,9 @@ BF.library._readOpfsChapter = async function (bookId, idx) {
       const _raw = await BF.fsync.readFile('books/' + bookId + '/parts/b' + Math.floor(idx / _CB) + '.json');
       const _part = JSON.parse(_raw);
       const _rec = _part && _part[idx % _CB];
+      /* 图片书：图片随记录整份存进分批文件（img 字段），先认它再谈正文解压——
+         正文槽是空串，直接解压会报「解压失败」的假警。 */
+      if (_rec && _rec.img) return { ok: true, text: '', img: _rec.img };
       if (_rec && _rec.content != null) return await BF.lz.decompressSafe(_rec.content);
     }
   } catch (e) { /* OPFS 无该批次属常态（该批走了 IDB/LS 或书没分批），静默返回 null */ }
@@ -555,6 +558,8 @@ BF.library._listOpfsBookIds = async function () {
    而装配全书的两个调用方（重分章 / 重建章节）必须知道哪一章没拿到，
    否则缺的那几章会被当成空正文重写入库，从此再也找不回来。 */
 BF.library.readChapter = async function (book, idx) {
+  /* 图片书：正文槽是空串，照实返回空——不走解压，免得把空串当「解压失败」刷警告 */
+  if (book && book.img) return { ok: true, text: '' };
   const key = book.id + '_' + idx;
   try {
     if (BF.reader && BF.reader.__prefetched && BF.reader.__prefetched[key] != null) return { ok: true, text: BF.reader.__prefetched[key] };

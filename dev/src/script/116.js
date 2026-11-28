@@ -321,14 +321,14 @@ BF.ai.tools = {
     catch (e) { return '重新分章失败：' + (e && e.message || e); }
   },
   /* ---- 组4 导入 / 导出 / 备份：异步一律 await，回执说真实结果 ---- */
-  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT/EPUB/PDF/MOBI 文件；原生选择器可能要求用户手势）'; },
+  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ 文件；原生选择器可能要求用户手势）'; },
   importClipboard: async function () {
     try { await BF.library.importClipboard(); return '已触发剪贴板导入（结果以界面通知为准）'; }
     catch (e) { return '剪贴板导入失败：' + (e && e.message || e); }
   },
   importURL: async function (url) {
     const u = String(url || '').trim();
-    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT/EPUB/PDF/MOBI 直链';
+    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ 直链';
     try { await BF.library.importURL(u); return '已触发在线导入：' + u + '（结果以界面通知为准）'; }
     catch (e) { return '在线导入失败：' + (e && e.message || e); }
   },

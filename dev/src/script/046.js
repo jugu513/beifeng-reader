@@ -1,7 +1,7 @@
 /* ================= L3. 文件名清洗 ================= */
 BF.library.cleanName = function (rawName) {
   /* 与文件选择器的 accept 对齐：放行 .txt / .text / .json，书名就不该把扩展名带进书架 */
-  const name = String(rawName).replace(/\.(?:txt|text|json)$/i, '').trim() || '未命名书籍';
+  const name = String(rawName).replace(/\.(?:txt|text|json|epub|pdf|mobi|azw|azw3|docx?|html?|xhtml|fb2|md|markdown|cbz)$/i, '').trim() || '未命名书籍';
   return name.replace(/(?:[（(【\[][^）)】\]]*(?:[卷册部集篇回]|上|中|下|全|完结)[）)】\]][\s_\-]*(?:第[一二三四五六七八九十百千\d]+[卷册部集篇回]|第一[一二三四五六七八九十百千]?[卷册部集篇回])$)/, '') || name;
 };
 

@@ -172,6 +172,30 @@ BF.reader.loadChapter = async function (noFade) {
     void rm.offsetWidth;
     rm.classList.add('pk-flip-fade');
   }
+  /* 图片章（CBZ）：取到的不是文本，是这一图片的 dataURL。单开一条渲染路——
+     再往下走 toParas 会把几十万字符的 base64 当成一个段落，字数、进度、
+     空章判定、搜索坐标全被它带偏。收尾仍走 _settleChapter，与文本四条分支同口径。 */
+  if (b.img) {
+    BF.reader.state.paras = [];
+    BF.reader.state.parasChars = 0;
+    const _pn = (BF.reader.state.bookTitles && BF.reader.state.bookTitles.length) || b.totalChapters || idx + 1;
+    const _meta = '<div class="chap-meta" aria-label="本页信息"><span>第 ' + (idx + 1) + ' / ' + _pn + ' 页</span></div>';
+    if (text) {
+      rm.innerHTML = '<h2>' + BF.dom.esc(BF.reader.state.title) + '</h2>' + _meta +
+        '<div class="img-chap"><img class="img-chap__img" alt="' + BF.dom.esc(BF.reader.state.title) + '"></div>';
+      const _im = rm.querySelector('.img-chap__img');
+      if (_im) _im.src = text;
+    } else {
+      rm.innerHTML = '<h2>' + BF.dom.esc(BF.reader.state.title) + '</h2>' + _meta +
+        '<div class="rd-blank" role="status">' +
+        '<div class="rd-blank__icon" aria-hidden="true">◇</div>' +
+        '<p class="rd-blank__msg">这一图片读取失败</p>' +
+        '<p class="rd-blank__hint">可尝试重新导入这本书。</p>' +
+        '</div>';
+    }
+    BF.reader._settleChapter(idx);
+    return;
+  }
   const paras = BF.reader.toParas(text, BF.reader.state.title);
   BF.reader.state.paras = paras;
   /* 整章字符数开章算一次存缓存：进度/剩余时间两处若每帧 join('') 会重造数 MB 串 */

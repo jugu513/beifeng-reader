@@ -289,7 +289,7 @@ BF.app.renderBookshelf = function (opts) {
 
   const addCard = '<div class="add-card" data-trigger-import>' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB/PDF/MOBI · 拖拽或点击</span>' +
+    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ · 拖拽或点击</span>' +
     /* 这两个按钮必须收在导入卡内部：若作为 grid-column:1/-1 的整行元素
        插在网格中间，会把第一行书卡劈到第二行，多本书时整个网格从中间断开 */
     '<span style="display:flex;gap:6px;justify-content:center;margin-top:10px">' +
@@ -313,7 +313,7 @@ BF.app.renderBookshelf = function (opts) {
     if (sq && filters.length) { head = '没有同时满足条件的书'; sub = '筛选：' + filters.join('、') + ' · 关键词：' + BF.dom.esc(shown); clearWhat = 'both'; }
     else if (filters.length) { head = '这个筛选下没有书'; sub = '当前筛选：' + filters.join('、'); clearWhat = 'filter'; }
     else if (sq) { head = '没有匹配「' + BF.dom.esc(shown) + '」的书'; sub = '书名整段包含才算命中，换个关键词或清掉搜索'; clearWhat = 'search'; }
-    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB/PDF/MOBI 拖进来，或点右下角的 + 导入'; }
+    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ 拖进来，或点右下角的 + 导入'; }
     grid.innerHTML = addCard +
       '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
       '<p>' + head + '</p><div class="sub">' + sub + '</div>' +

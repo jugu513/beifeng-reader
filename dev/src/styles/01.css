@@ -981,6 +981,10 @@ body.en-hyphen #reader-main p[lang="en"] { hyphens: auto; overflow-wrap: break-w
 .chap-meta span { display: inline-flex; align-items: center; }
 .reader-main h2 { font-size: 22px; font-weight: 700; text-align: center; margin: 24px 0 28px; letter-spacing: 1px; }
 .reader-main p { margin-bottom: var(--rd-pmb, 1em); text-indent: var(--rd-indent, 2em); }
+/* 图片章（CBZ）：一图一页。图不裁剪不放大（保住画质），超宽随容器缩、超高走滚动；
+   居中靠 img 自身的 margin:auto——.reader-main 的两端对齐是给正文段落的，图不跟着它贴边。 */
+.img-chap { margin: 8px 0 24px; }
+.img-chap__img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 /* 分页模式里一段长到要跨页时，续页那截不重新起段：首行缩进只属于段的第一页 */
 .reader-main p.pk-cont { text-indent: 0; }
 .reader-main .chapter-end { text-align: center; margin: 40px 0 20px; color: var(--text-weak); font-size: 13px; }

@@ -30,6 +30,10 @@ BF.library.__putChapters = async function (id, chapters, onProgress) {
           sid: (c && c.sid) || '',
           content: await BF.lz.compress(c.content),
         };
+        /* 图片章：图片不进正文（正文槽是空串），单独随记录带 img 字段。
+           不送 gzip —— JPEG/PNG 本身已压过，再压一遍只烧 CPU 与内存，
+           而且 dataURL 会把单批峰值内存顶上去。 */
+        if (c && c.img) out[k].img = c.img;
       }
     }
     const ws = [];
@@ -47,7 +51,12 @@ BF.library.__putChapters = async function (id, chapters, onProgress) {
     /* P4.5：底层写读 allocOf('chapters') 选介质。'ls' 且尺寸装得下 → LS 层提到首选；
        其余（auto/idb/opfs）保持既有 IDB→OPFS→LS 顺序，读路兼容不变。 */
     const _pref = (typeof BF.store.allocOf === 'function') ? BF.store.allocOf('chapters') : 'auto';
+    /* 图片批次不走 LS：LS 的值必须是「可显示的文本」（读路拿到即用，不再解压），
+       dataURL 装不进 localStorage 的配额，硬塞只会得到一本只有空正文的书。
+       从 IDB / OPFS 里选——两层都能原样带上 img 字段。 */
+    const _hasImg = part.some(function (r) { return r && r.img; });
     function _tryLs() {
+      if (_hasImg) return null;
       try {
         let lsAll = true;
         for (let k = 0; k < part.length; k++) {
@@ -170,7 +179,9 @@ BF.library.__putChapters = async function (id, chapters, onProgress) {
     written.push('titles:' + id);
     /* 新拓扑：整本正文源落 OPFS books/<id>/body.txt（IDB 降级），供重分章/导出免重新导入；
        LS 仍不承载正文；失败静默，正文读取仍走 IDB chapters，不受影响。 */
-    try { BF.store.saveBody(id, chapters.map(function (c) { return c && c.content != null ? c.content : ''; }).join('\n')).catch(function (e) { BF.err.report('lz.saveBody', e); }); } catch (e) { BF.err.report('lz.saveBody', e); }
+    if (!chapters.some(function (c) { return c && c.img; })) {
+      try { BF.store.saveBody(id, chapters.map(function (c) { return c && c.content != null ? c.content : ''; }).join('\n')).catch(function (e) { BF.err.report('lz.saveBody', e); }); } catch (e) { BF.err.report('lz.saveBody', e); }
+    }
     return receipt;
   } catch (e) {
     /* 正文入库中途失败 → 回滚已写入的章节，防止 importFile 的 LS 兜底也失败时留下半本书的孤儿数据 */
@@ -188,6 +199,10 @@ BF.library.__putChapters = async function (id, chapters, onProgress) {
 };
 /* 统一的 LS 兜底：返回是否全部写成功，便于上层给出真实提示 */
 BF.library.__lsFallback = function (id, chapters) {
+  /* 图片书没有 LS 兜底：LS 只承载可显示文本，dataURL 塞不进去。
+     如实返回 false，上层据此报「正文写入失败」，
+     而不是上架一本点开全空的幽灵书。 */
+  if (chapters.some(function (c) { return c && c.img; })) return false;
   let ok = true;
   chapters.forEach(function (c, i) { if (!BF.store.lsSet('chap_' + id + '_' + i, c.content)) ok = false; });
   return ok;

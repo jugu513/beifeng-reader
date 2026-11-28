@@ -661,7 +661,13 @@ gate('⑱ 无自我覆盖与越界引用', g18.length === 0,
    display:none，切过去就是整页空白，而用户只当程序卡了一下。node --check 看语法、
    ② 看样式块配平，两者都看不见 HTML 骨架的错位（它只在渲染树上成立）。 */
 {
-  const bodyAt = src.lastIndexOf('<body');
+  /* 扫描起点必须是**文档骨架**里的 <body>，不是全文最后一个 <body> 字样。
+     格式解析器（FB2 按 <body> 取正文、HTML 按标签切章）的源码里天然带这几个字符，
+     用 lastIndexOf 会跳进 <script> 之后的 JS 里，骨架区被扫成一段脚本文本，
+     一个页面容器也数不到 —— 那正是本条判据自己写着「判据没接上」的情形。
+     限定在第一个 <script> 之前往回找，骨架区才是它要验的那块。 */
+  const scriptHead = src.indexOf('<script');
+  const bodyAt = src.lastIndexOf('<body', scriptHead > 0 ? scriptHead : src.length);
   const scriptAt = src.indexOf('<script', bodyAt);
   const skel = src.slice(bodyAt < 0 ? 0 : bodyAt, scriptAt > 0 ? scriptAt : src.length)
     .replace(/<!--[\s\S]*?-->/g, '');

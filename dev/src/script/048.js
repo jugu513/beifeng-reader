@@ -23,6 +23,10 @@ BF.library.resplitBook = async function (bookId) {
   const books = BF.store.lsGetArray(BF.store.K.BOOKS_META, []);
   const b = books.find(function (x) { return x && x.id === bookId; });
   if (!b) { BF.noti.warn('书不存在'); return; }
+  /* 图片书（CBZ）没有文本正文可重切：readChapter 照实返回空串，逐章拼出来是一串
+     换行，splitChapters 只会切成一本单章空书写回去 —— 旧图片记录那时已经删了，
+     不可逆。先在这里拦住，别把确认框弹给一个注定失败的操作。 */
+  if (b.img) { BF.noti.warn('《' + b.title + '》是图片书（CBZ），没有可重分的文本正文'); return; }
   /* 确认绑在能力上：确认由 BF.ask.confirm 统一发起——菜单项不再各自问
      一句（且文案与菜单同名重复），命令与 DSL 这条路径同样被覆盖。
      下面的取原文是只读的，无须提前做。 */

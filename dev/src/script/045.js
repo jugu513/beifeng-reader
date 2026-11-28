@@ -77,6 +77,13 @@ BF.library.rebuildBookChapters = async function (bookId, opts) {
   opts = opts || {};
   const b = (BF.store.lsGetArray(BF.store.K.BOOKS_META, []) || []).find(function (x) { return x && x.id === bookId; });
   if (!b) return null;
+  /* 图片书（CBZ）没有文本正文：任何按文本重切的写回通道（手动重分 / 手动合并拆分 /
+     AI 分章）都会把它压成一本单章空书，而删旧章那一截不可逆。
+     三条路都收口在本函数，拦一道就够。 */
+  if (b.img) {
+    try { BF.noti.error('《' + b.title + '》是图片书（CBZ），没有可重排的文本正文'); } catch (e) {}
+    return null;
+  }
   /* 1. 重建全书正文（除非调用方已提供清洗后的全文，省去一次全量读取）
      本函数会把结果写回章节表，所以走 strict：读不到就抛出，
      不能让缺的章节以空串参与切片——那会把这本书永久重写成少了那几章的样子。 */
