@@ -342,6 +342,7 @@
     else if (act === 'note-underline') BF.reader.addNote('underline');
     else if (act === 'note-wavy') BF.reader.addNote('wavy');
     else if (act === 'note-bg') BF.reader.addNote('bg');
+    else if (act === 'hl-color') BF.reader.pickHlColor();
     else if (act === 'copy') BF.reader.copySel();
     else if (act === 'search') BF.reader.searchSel();
     else if (act === 'vocab') BF.reader.addVocab();

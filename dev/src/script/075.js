@@ -638,7 +638,7 @@ BF.reader.searchAll = (function () {
 BF.reader.renderBookmarks = function (c) {
   const bmsAll = BF.store.lsGetArray(BF.store.K.BOOKMARKS, []);
   const bms = bmsAll.map((b, bi) => ({ b, bi })).filter(x => x.b.bookId === BF.appState.currentBookId);
-  if (!bms.length) { c.innerHTML = '<div class="cmdk-empty">暂无书签。选中文字后点工具条「书签」，或按 Ctrl+D 添加</div>'; return; }
+  if (!bms.length) { c.innerHTML = '<div class="cmdk-empty">书签还空着。读到想回来的地方，选中文字点「书签」（Ctrl+D）</div>'; return; }
   c.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' +
     bms.map(function (x) {
       const bm = x.b;
@@ -663,7 +663,7 @@ BF.reader.renderNotes = function (c) {
   const head = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
     '<button class="btn btn-xs" data-open-notes style="flex:1;justify-content:flex-start">' + BF.dom.ic('md') + ' 打开便签编辑器</button>' +
     '</div>';
-  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">暂无划线（选中文字 → 工具条可划线）</div>'; return; }
+  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。选中喜欢的句子，让它亮起来</div>'; return; }
   c.innerHTML = head + '<div style="display:flex;flex-direction:column;gap:4px">' +
     notes.map(function (n) {
       const _ch = BF.dom.intAttr(n.chapterIdx), _off = BF.dom.intAttr(n.charOffset);
@@ -817,8 +817,8 @@ BF.reader.applyHighlights = function () {
        没有类型字段的老数据也默认 note-under（下划线），不冒充底色。 */
     if (hl.type === 'wavy') return 'note-wavy';
     if (hl.type === 'bg') {
-      const c = hl.color || 'yellow';
-      return (c === 'green' || c === 'blue' || c === 'pink') ? ('pk-hl-' + c) : 'note-bg';
+      /* 底色白名单单一事实源在 BF.reader.hlBgClass（079），两边不再各写一份 */
+      return BF.reader.hlBgClass(hl.color || 'yellow');
     }
     /* type=underline 或无 type（老数据）→ 真下划线，颜色取 color 字段 */
     return 'note-under' + (hl.color && hl.color !== 'yellow' ? ' ' + hl.color : '');

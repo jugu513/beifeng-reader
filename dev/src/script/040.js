@@ -310,7 +310,7 @@ BF.app.renderBookshelf = function (opts) {
     if (sq && filters.length) { head = '没有同时满足条件的书'; sub = '筛选：' + filters.join('、') + ' · 关键词：' + BF.dom.esc(shown); clearWhat = 'both'; }
     else if (filters.length) { head = '这个筛选下没有书'; sub = '当前筛选：' + filters.join('、'); clearWhat = 'filter'; }
     else if (sq) { head = '没有匹配「' + BF.dom.esc(shown) + '」的书'; sub = '书名整段包含才算命中，换个关键词或清掉搜索'; clearWhat = 'search'; }
-    else { head = '书架还是空的'; sub = '导入一本 TXT 开始，也可以把文件直接拖进这个窗口'; }
+    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB 拖进来，或点右下角的 + 导入'; }
     grid.innerHTML = addCard +
       '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
       '<p>' + head + '</p><div class="sub">' + sub + '</div>' +

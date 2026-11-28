@@ -24,7 +24,66 @@ BF.hlc = (function () {
   return { next: next, device: _device };
 })();
 
-BF.reader.HL_COLORS = ['yellow', 'green', 'blue', 'pink'];
+BF.reader.HL_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange', 'purple', 'teal', 'slate'];
+/* 色点/色板用的实体色值（与 styles/01.css 的 pk-hl-* 同一套 rgba）。
+   单一事实源：选色圆点、色板按钮、划线即画都从这里取色，CSS 只管几何。 */
+BF.reader.HL_RGB = {
+  yellow: 'rgba(245,212,66,0.85)', green: 'rgba(74,222,128,0.8)',
+  blue: 'rgba(96,165,250,0.8)', pink: 'rgba(244,114,182,0.8)',
+  orange: 'rgba(251,146,60,0.8)', purple: 'rgba(192,132,252,0.8)',
+  teal: 'rgba(45,212,191,0.8)', slate: 'rgba(148,163,184,0.85)',
+};
+/* 底色型高亮的类名映射：yellow 走老牌 .note-bg，其余走 .pk-hl-*。
+   075 重渲染与 079 即时套色共用这一处，避免两边白名单再次漂移。 */
+BF.reader.hlBgClass = function (c) {
+  const color = BF.reader.HL_COLORS.indexOf(c) >= 0 ? c : 'yellow';
+  return color === 'yellow' ? 'note-bg' : ('pk-hl-' + color);
+};
+/* 划线颜色选择器：挂在选中工具条的「颜色」按钮上，改 hlLastColor（addNote 已读它）。 */
+BF.reader.pickHlColor = function () {
+  const exist = document.getElementById('hl-palette');
+  if (exist) { exist.remove(); return; }
+  const bar = document.getElementById('selbar');
+  if (!bar) return;
+  const cur = BF.settings.get('hlLastColor') || 'yellow';
+  const pop = document.createElement('div');
+  pop.id = 'hl-palette';
+  pop.className = 'hl-palette';
+  pop.setAttribute('role', 'listbox');
+  pop.setAttribute('aria-label', '划线颜色');
+  BF.reader.HL_COLORS.forEach(function (c) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'hl-swatch' + (c === cur ? ' is-cur' : '');
+    b.dataset.color = c;
+    b.style.background = BF.reader.HL_RGB[c] || BF.reader.HL_RGB.yellow;
+    b.setAttribute('aria-label', '颜色 ' + c);
+    b.setAttribute('aria-selected', String(c === cur));
+    pop.appendChild(b);
+  });
+  document.body.appendChild(pop);
+  const r = bar.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(window.innerWidth - pw - 8, r.left)) + 'px';
+  pop.style.top = Math.max(8, r.top - ph - 8) + 'px';
+  pop.addEventListener('click', function (e) {
+    const t = e.target.closest('[data-color]');
+    if (!t) return;
+    const c = t.dataset.color;
+    try { BF.settings.set('hlLastColor', c); } catch (err) {}
+    const dot = document.querySelector('[data-hl-dot]');
+    if (dot) dot.style.background = BF.reader.HL_RGB[c] || BF.reader.HL_RGB.yellow;
+    pop.remove();
+  });
+  /* 点色板外关闭；用 mousedown 抢在工具条自身逻辑前，避免选区丢失连带把 bar 收掉 */
+  setTimeout(function () {
+    const away = function (ev) {
+      if (!pop.isConnected) { document.removeEventListener('mousedown', away); return; }
+      if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', away); }
+    };
+    document.addEventListener('mousedown', away);
+  }, 0);
+};
 /* 写入前的最后一道校验：备份选区若指向的段落已不属于当前章（切章后状态泄漏、
    或经其他路径绕过 clearSelState），宁可拒绝写入也不落一条 text/loc 错配的脏标注。
    返回错误文案，由调用方转成提示。 */
@@ -212,9 +271,9 @@ BF.reader.addNote = function (type) {
   try {
     if (useRange) {
       const span = document.createElement('span');
-      /* 与 applyHighlights 的 clsOf 同一套映射 */
+      /* 与 applyHighlights 的 clsOf 同一套映射（底色白名单单一事实源在 hlBgClass） */
       span.className = type === 'wavy' ? 'note-wavy'
-        : type === 'bg' ? ((color === 'green' || color === 'blue' || color === 'pink') ? ('pk-hl-' + color) : 'note-bg')
+        : type === 'bg' ? BF.reader.hlBgClass(color)
         : 'pk-hl-' + color;
       useRange.surroundContents(span);
       painted = true;
@@ -388,7 +447,7 @@ BF.reader.addVocab = function () {
 };
 BF.reader.renderVocab = function (c) {
   const all = (BF.store.lsGetMemo(BF.store.K.VOCAB, []) || []).filter(x => x.bookId === BF.appState.currentBookId);
-  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">暂无生词（选中文字 → 工具条「生词」收藏）</div>'; return; }
+  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本在等第一个词。选中文字点「生词」，它就跟你走了</div>'; return; }
   /* 生词记忆辅助：
      三档筛选（全部 / 只复习不认识 / 已掌握隐藏）+ 掌握状态（known/unknown/mastered）+ 复习可朗读。
      数据向后兼容：旧条目无 status 字段视为 unknown（未掌握）。 */
@@ -466,7 +525,7 @@ BF.reader.renderVocab = function (c) {
           BF.act.run('删除生词', function () {
             BF.store.lsSet(BF.store.K.VOCAB, BF.store.lsGetArray(BF.store.K.VOCAB, []).filter(function (x) { return !(x.bookId === v.bookId && x.word === v.word); }));
             all.splice(all.indexOf(v), 1);
-            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">暂无生词。选中文字后点工具条「生词」收藏</div>'; return; }
+            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」，第一个词就归你了</div>'; return; }
             _idx = _idx % list.length;
             render();
           }, {
@@ -574,7 +633,7 @@ BF.reader.renderMarks = function (c) {
     '<span>书签 <b style="color:var(--accent-ink)">' + bms.length + '</b></span>' +
     '<span>生词 <b style="color:var(--accent-ink)">' + vocs.length + '</b></span>' +
     '<span>便签 <b style="color:var(--accent-ink)">' + notes.length + '</b></span></div>';
-  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">本书还没有留下标注（选中文字可划线 / 收藏生词）</div>'; return; }
+  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">这本书还没留下痕迹。选中文字划线或收进生词本，读过的证据会攒在这里</div>'; return; }
   /* 聚合时间线（按 created 倒序） */
   const items = [];
   hls.forEach(function (h) { items.push({ t: h.created || 0, type: '划线', text: h.text || '', note: h.note || '', ch: h.chapterIdx, off: h.charOffset, id: h.id, kind: 'hl', loc: h.loc || null }); });

@@ -28,6 +28,11 @@ BF.reader.positionSel = function () {
   const rect = range.getBoundingClientRect();
   bar.style.top = Math.max(10, rect.top - 46) + 'px';
   bar.classList.add('show');
+  /* 色点跟随设置刷新：hlLastColor 可能来自上一次选色或旧存档 */
+  const _dot = bar.querySelector('[data-hl-dot]');
+  if (_dot && BF.reader.HL_RGB) {
+    _dot.style.background = BF.reader.HL_RGB[BF.settings.get('hlLastColor') || 'yellow'] || BF.reader.HL_RGB.yellow;
+  }
   BF.reader.__lastSelText = t;
   /* 深拷贝当前 Range。工具条操作（书签/划线/生词）优先用这份备份，
      而不是实时选区——一次划词可连续施加多个标注，不被第一次操作后的

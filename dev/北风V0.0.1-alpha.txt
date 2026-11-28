@@ -1178,18 +1178,30 @@ body.en-hyphen #reader-main p[lang="en"] { hyphens: auto; overflow-wrap: break-w
 .pk-hl-green  { background: rgba(74,222,128,0.35); border-radius: 2px; }
 .pk-hl-blue   { background: rgba(96,165,250,0.35); border-radius: 2px; }
 .pk-hl-pink   { background: rgba(244,114,182,0.35); border-radius: 2px; }
-.pk-hl-yellow:hover,.pk-hl-green:hover,.pk-hl-blue:hover,.pk-hl-pink:hover { outline: 1px solid var(--text-dim); }
+.pk-hl-orange { background: rgba(251,146,60,0.35); border-radius: 2px; }
+.pk-hl-purple { background: rgba(192,132,252,0.32); border-radius: 2px; }
+.pk-hl-teal   { background: rgba(45,212,191,0.32); border-radius: 2px; }
+.pk-hl-slate  { background: rgba(148,163,184,0.38); border-radius: 2px; }
+.pk-hl-yellow:hover,.pk-hl-green:hover,.pk-hl-blue:hover,.pk-hl-pink:hover,.pk-hl-orange:hover,.pk-hl-purple:hover,.pk-hl-teal:hover,.pk-hl-slate:hover { outline: 1px solid var(--text-dim); }
 .note-under { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; color: inherit; text-decoration-color: rgba(245,212,66,0.85); }
 .note-under.yellow { text-decoration-color: rgba(245,212,66,0.85); }
 .note-under.green  { text-decoration-color: rgba(74,222,128,0.85); }
 .note-under.blue   { text-decoration-color: rgba(96,165,250,0.85); }
 .note-under.pink   { text-decoration-color: rgba(244,114,182,0.85); }
+.note-under.orange { text-decoration-color: rgba(251,146,60,0.85); }
+.note-under.purple { text-decoration-color: rgba(192,132,252,0.85); }
+.note-under.teal   { text-decoration-color: rgba(45,212,191,0.85); }
+.note-under.slate  { text-decoration-color: rgba(148,163,184,0.9); }
 /* 混合模式高亮：浅色主题下 multiply 让高亮「吃进」纸面，
    深色主题保持半透明底（multiply 在深底会变黑，反而不读）。 */
 body.light .pk-hl-yellow { mix-blend-mode: multiply; }
 body.light .pk-hl-green  { mix-blend-mode: multiply; }
 body.light .pk-hl-blue   { mix-blend-mode: multiply; }
 body.light .pk-hl-pink   { mix-blend-mode: multiply; }
+body.light .pk-hl-orange { mix-blend-mode: multiply; }
+body.light .pk-hl-purple { mix-blend-mode: multiply; }
+body.light .pk-hl-teal   { mix-blend-mode: multiply; }
+body.light .pk-hl-slate  { mix-blend-mode: multiply; }
 .note-wavy { text-decoration: underline wavy; text-decoration-color: var(--text-weak); }
 .note-bg { background: rgba(245,212,66,0.22); }
 /* 生词 */
@@ -1230,6 +1242,12 @@ body.light .pk-hl-pink   { mix-blend-mode: multiply; }
 .selbar-prev.prev-underline { background: rgba(245,212,66,0.40); }
 .selbar-prev.prev-wavy { text-decoration: underline wavy; text-decoration-color: var(--text-weak); }
 .selbar-prev.prev-bg { background: rgba(96,165,250,0.35); }
+/* 划线颜色：工具条色点 + 选色色板（色值由 JS 的 HL_RGB 内联写入，这里只管几何） */
+.selbar-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: rgba(245,212,66,0.85); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18); margin-right: 4px; vertical-align: -1px; }
+.hl-palette { position: fixed; z-index: 70; display: flex; gap: 8px; padding: 9px 12px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow-md); }
+.hl-swatch { width: 22px; height: 22px; min-height: 0; padding: 0; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.hl-swatch:hover { transform: scale(1.12); }
+.hl-swatch.is-cur { border-color: var(--text); }
 /* 选中文本右键菜单（划线右键菜单三件套之一） */
 .sel-ctx-menu {
   position: fixed; z-index: var(--z-popover);
@@ -5450,7 +5468,7 @@ body.a-line .noti-card {
     <div class="home-right">
       <div>
         <div class="section-title">最近在读</div>
-        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import="">导入 TXT/EPUB</button></div></div>
+        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import="">导入 TXT/EPUB</button></div></div>
       </div>
       <div>
         <div class="daily-quote" id="daily-quote">“读书破万卷，下笔如有神。”<div class="source">—— 杜甫</div></div>
@@ -5677,6 +5695,7 @@ body.a-line .noti-card {
         <button data-sel="note-underline" aria-label="划线" title="划线（黄色底）"><span class="selbar-prev prev-underline">文</span>划线</button>
         <button data-sel="note-wavy" aria-label="波浪线" title="波浪线（不遮挡正文）"><span class="selbar-prev prev-wavy">文</span>波浪线</button>
         <button data-sel="note-bg" aria-label="底色" title="底色（可自选颜色）"><span class="selbar-prev prev-bg">文</span>底色</button>
+        <button data-sel="hl-color" aria-label="划线颜色" title="划线颜色（选完再点划线/底色）"><span class="selbar-dot" data-hl-dot></span>颜色</button>
         <button data-sel="copy" aria-label="复制">复制</button>
         <button data-sel="search" aria-label="搜索">搜索</button>
         <button data-sel="vocab" aria-label="收藏生词">生词</button>
@@ -10903,7 +10922,7 @@ BF.notesTab = (function () {
         '<div class="note-empty">' +
         '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".45"><path d="M14 8h28l12 12v36H14z"/><path d="M42 8v12h12"/><path d="M22 28h24M22 38h24M22 48h16"/></svg>' +
         '<div class="note-empty__lead">还没有标注</div>' +
-        '<div class="note-empty__hint">在阅读器里选中文本划线、加书签或写批注，这里会按书列出全部</div>' +
+        '<div class="note-empty__hint">在阅读里划下的每一笔——划线、书签、批注——都会整齐地列在这里</div>' +
         '</div>';
       return;
     }
@@ -11484,7 +11503,7 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT/EPUB →</span>' +
+          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB →</span>' +
         '</div>';
 
     const quick = [
@@ -11986,7 +12005,7 @@ BF.app.renderHome = function () {
   const rc = document.getElementById('recent-scroll');
   if (rc) {
     if (!recent.length) {
-      rc.innerHTML = '<div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import>导入 TXT/EPUB</button></div>';
+      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入 TXT/EPUB</button></div>';
     } else {
       rc.innerHTML = recent.map(BF.app.recentCardHTML).join('');
     }
@@ -13028,7 +13047,7 @@ BF.app.renderBookshelf = function (opts) {
     if (sq && filters.length) { head = '没有同时满足条件的书'; sub = '筛选：' + filters.join('、') + ' · 关键词：' + BF.dom.esc(shown); clearWhat = 'both'; }
     else if (filters.length) { head = '这个筛选下没有书'; sub = '当前筛选：' + filters.join('、'); clearWhat = 'filter'; }
     else if (sq) { head = '没有匹配「' + BF.dom.esc(shown) + '」的书'; sub = '书名整段包含才算命中，换个关键词或清掉搜索'; clearWhat = 'search'; }
-    else { head = '书架还是空的'; sub = '导入一本 TXT 开始，也可以把文件直接拖进这个窗口'; }
+    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB 拖进来，或点右下角的 + 导入'; }
     grid.innerHTML = addCard +
       '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
       '<p>' + head + '</p><div class="sub">' + sub + '</div>' +
@@ -17822,7 +17841,7 @@ BF.reader.updateRemain = function () {
         card.classList.remove('show');
       } else {
         card.innerHTML = _state === 'last'
-          ? '<span>全书读完 🎉</span><button class="btn btn-xs" data-review-card="" aria-label="本书回顾">回顾本书</button>'
+          ? '<span>全书读完 🎉 你把它读完了</span><button class="btn btn-xs" data-review-card="" aria-label="本书回顾">回顾本书</button>'
           : '<span>本章读完，继续往下读？</span><button class="btn btn-xs" data-next-chapter="" aria-label="下一章">下一章 →</button>';
         card.classList.add('show');
       }
@@ -19906,7 +19925,7 @@ BF.reader.searchAll = (function () {
 BF.reader.renderBookmarks = function (c) {
   const bmsAll = BF.store.lsGetArray(BF.store.K.BOOKMARKS, []);
   const bms = bmsAll.map((b, bi) => ({ b, bi })).filter(x => x.b.bookId === BF.appState.currentBookId);
-  if (!bms.length) { c.innerHTML = '<div class="cmdk-empty">暂无书签。选中文字后点工具条「书签」，或按 Ctrl+D 添加</div>'; return; }
+  if (!bms.length) { c.innerHTML = '<div class="cmdk-empty">书签还空着。读到想回来的地方，选中文字点「书签」（Ctrl+D）</div>'; return; }
   c.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' +
     bms.map(function (x) {
       const bm = x.b;
@@ -19931,7 +19950,7 @@ BF.reader.renderNotes = function (c) {
   const head = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
     '<button class="btn btn-xs" data-open-notes style="flex:1;justify-content:flex-start">' + BF.dom.ic('md') + ' 打开便签编辑器</button>' +
     '</div>';
-  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">暂无划线（选中文字 → 工具条可划线）</div>'; return; }
+  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。选中喜欢的句子，让它亮起来</div>'; return; }
   c.innerHTML = head + '<div style="display:flex;flex-direction:column;gap:4px">' +
     notes.map(function (n) {
       const _ch = BF.dom.intAttr(n.chapterIdx), _off = BF.dom.intAttr(n.charOffset);
@@ -20085,8 +20104,8 @@ BF.reader.applyHighlights = function () {
        没有类型字段的老数据也默认 note-under（下划线），不冒充底色。 */
     if (hl.type === 'wavy') return 'note-wavy';
     if (hl.type === 'bg') {
-      const c = hl.color || 'yellow';
-      return (c === 'green' || c === 'blue' || c === 'pink') ? ('pk-hl-' + c) : 'note-bg';
+      /* 底色白名单单一事实源在 BF.reader.hlBgClass（079），两边不再各写一份 */
+      return BF.reader.hlBgClass(hl.color || 'yellow');
     }
     /* type=underline 或无 type（老数据）→ 真下划线，颜色取 color 字段 */
     return 'note-under' + (hl.color && hl.color !== 'yellow' ? ' ' + hl.color : '');
@@ -21016,7 +21035,66 @@ BF.hlc = (function () {
   return { next: next, device: _device };
 })();
 
-BF.reader.HL_COLORS = ['yellow', 'green', 'blue', 'pink'];
+BF.reader.HL_COLORS = ['yellow', 'green', 'blue', 'pink', 'orange', 'purple', 'teal', 'slate'];
+/* 色点/色板用的实体色值（与 styles/01.css 的 pk-hl-* 同一套 rgba）。
+   单一事实源：选色圆点、色板按钮、划线即画都从这里取色，CSS 只管几何。 */
+BF.reader.HL_RGB = {
+  yellow: 'rgba(245,212,66,0.85)', green: 'rgba(74,222,128,0.8)',
+  blue: 'rgba(96,165,250,0.8)', pink: 'rgba(244,114,182,0.8)',
+  orange: 'rgba(251,146,60,0.8)', purple: 'rgba(192,132,252,0.8)',
+  teal: 'rgba(45,212,191,0.8)', slate: 'rgba(148,163,184,0.85)',
+};
+/* 底色型高亮的类名映射：yellow 走老牌 .note-bg，其余走 .pk-hl-*。
+   075 重渲染与 079 即时套色共用这一处，避免两边白名单再次漂移。 */
+BF.reader.hlBgClass = function (c) {
+  const color = BF.reader.HL_COLORS.indexOf(c) >= 0 ? c : 'yellow';
+  return color === 'yellow' ? 'note-bg' : ('pk-hl-' + color);
+};
+/* 划线颜色选择器：挂在选中工具条的「颜色」按钮上，改 hlLastColor（addNote 已读它）。 */
+BF.reader.pickHlColor = function () {
+  const exist = document.getElementById('hl-palette');
+  if (exist) { exist.remove(); return; }
+  const bar = document.getElementById('selbar');
+  if (!bar) return;
+  const cur = BF.settings.get('hlLastColor') || 'yellow';
+  const pop = document.createElement('div');
+  pop.id = 'hl-palette';
+  pop.className = 'hl-palette';
+  pop.setAttribute('role', 'listbox');
+  pop.setAttribute('aria-label', '划线颜色');
+  BF.reader.HL_COLORS.forEach(function (c) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'hl-swatch' + (c === cur ? ' is-cur' : '');
+    b.dataset.color = c;
+    b.style.background = BF.reader.HL_RGB[c] || BF.reader.HL_RGB.yellow;
+    b.setAttribute('aria-label', '颜色 ' + c);
+    b.setAttribute('aria-selected', String(c === cur));
+    pop.appendChild(b);
+  });
+  document.body.appendChild(pop);
+  const r = bar.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(window.innerWidth - pw - 8, r.left)) + 'px';
+  pop.style.top = Math.max(8, r.top - ph - 8) + 'px';
+  pop.addEventListener('click', function (e) {
+    const t = e.target.closest('[data-color]');
+    if (!t) return;
+    const c = t.dataset.color;
+    try { BF.settings.set('hlLastColor', c); } catch (err) {}
+    const dot = document.querySelector('[data-hl-dot]');
+    if (dot) dot.style.background = BF.reader.HL_RGB[c] || BF.reader.HL_RGB.yellow;
+    pop.remove();
+  });
+  /* 点色板外关闭；用 mousedown 抢在工具条自身逻辑前，避免选区丢失连带把 bar 收掉 */
+  setTimeout(function () {
+    const away = function (ev) {
+      if (!pop.isConnected) { document.removeEventListener('mousedown', away); return; }
+      if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('mousedown', away); }
+    };
+    document.addEventListener('mousedown', away);
+  }, 0);
+};
 /* 写入前的最后一道校验：备份选区若指向的段落已不属于当前章（切章后状态泄漏、
    或经其他路径绕过 clearSelState），宁可拒绝写入也不落一条 text/loc 错配的脏标注。
    返回错误文案，由调用方转成提示。 */
@@ -21204,9 +21282,9 @@ BF.reader.addNote = function (type) {
   try {
     if (useRange) {
       const span = document.createElement('span');
-      /* 与 applyHighlights 的 clsOf 同一套映射 */
+      /* 与 applyHighlights 的 clsOf 同一套映射（底色白名单单一事实源在 hlBgClass） */
       span.className = type === 'wavy' ? 'note-wavy'
-        : type === 'bg' ? ((color === 'green' || color === 'blue' || color === 'pink') ? ('pk-hl-' + color) : 'note-bg')
+        : type === 'bg' ? BF.reader.hlBgClass(color)
         : 'pk-hl-' + color;
       useRange.surroundContents(span);
       painted = true;
@@ -21380,7 +21458,7 @@ BF.reader.addVocab = function () {
 };
 BF.reader.renderVocab = function (c) {
   const all = (BF.store.lsGetMemo(BF.store.K.VOCAB, []) || []).filter(x => x.bookId === BF.appState.currentBookId);
-  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">暂无生词（选中文字 → 工具条「生词」收藏）</div>'; return; }
+  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本在等第一个词。选中文字点「生词」，它就跟你走了</div>'; return; }
   /* 生词记忆辅助：
      三档筛选（全部 / 只复习不认识 / 已掌握隐藏）+ 掌握状态（known/unknown/mastered）+ 复习可朗读。
      数据向后兼容：旧条目无 status 字段视为 unknown（未掌握）。 */
@@ -21458,7 +21536,7 @@ BF.reader.renderVocab = function (c) {
           BF.act.run('删除生词', function () {
             BF.store.lsSet(BF.store.K.VOCAB, BF.store.lsGetArray(BF.store.K.VOCAB, []).filter(function (x) { return !(x.bookId === v.bookId && x.word === v.word); }));
             all.splice(all.indexOf(v), 1);
-            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">暂无生词。选中文字后点工具条「生词」收藏</div>'; return; }
+            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」，第一个词就归你了</div>'; return; }
             _idx = _idx % list.length;
             render();
           }, {
@@ -21566,7 +21644,7 @@ BF.reader.renderMarks = function (c) {
     '<span>书签 <b style="color:var(--accent-ink)">' + bms.length + '</b></span>' +
     '<span>生词 <b style="color:var(--accent-ink)">' + vocs.length + '</b></span>' +
     '<span>便签 <b style="color:var(--accent-ink)">' + notes.length + '</b></span></div>';
-  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">本书还没有留下标注（选中文字可划线 / 收藏生词）</div>'; return; }
+  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">这本书还没留下痕迹。选中文字划线或收进生词本，读过的证据会攒在这里</div>'; return; }
   /* 聚合时间线（按 created 倒序） */
   const items = [];
   hls.forEach(function (h) { items.push({ t: h.created || 0, type: '划线', text: h.text || '', note: h.note || '', ch: h.chapterIdx, off: h.charOffset, id: h.id, kind: 'hl', loc: h.loc || null }); });
@@ -21752,6 +21830,11 @@ BF.reader.positionSel = function () {
   const rect = range.getBoundingClientRect();
   bar.style.top = Math.max(10, rect.top - 46) + 'px';
   bar.classList.add('show');
+  /* 色点跟随设置刷新：hlLastColor 可能来自上一次选色或旧存档 */
+  const _dot = bar.querySelector('[data-hl-dot]');
+  if (_dot && BF.reader.HL_RGB) {
+    _dot.style.background = BF.reader.HL_RGB[BF.settings.get('hlLastColor') || 'yellow'] || BF.reader.HL_RGB.yellow;
+  }
   BF.reader.__lastSelText = t;
   /* 深拷贝当前 Range。工具条操作（书签/划线/生词）优先用这份备份，
      而不是实时选区——一次划词可连续施加多个标注，不被第一次操作后的
@@ -31200,7 +31283,7 @@ BF.annAcross = (function () {
     items.forEach(function (it, i) { _idxOf.set(it, i); });
     let listHtml;
     if (!items.length) {
-      listHtml = '<div class="cmdk-empty">全库还没有标注（阅读时选中文字可划线 / 收藏生词）</div>';
+      listHtml = '<div class="cmdk-empty">还没有一条标注。阅读时划下的句子，会在这里聚成你的书摘</div>';
     } else if (!_shown.length) {
       /* 空态区分：全库有标注但当前标签过滤命中 0 条 —— 与上面「全库无标注」不同，
          文案要点明是过滤造成的，并提示怎么回去，避免用户以为标注丢了。 */
@@ -46050,6 +46133,7 @@ BF.hotkeys = (function () {
     else if (act === 'note-underline') BF.reader.addNote('underline');
     else if (act === 'note-wavy') BF.reader.addNote('wavy');
     else if (act === 'note-bg') BF.reader.addNote('bg');
+    else if (act === 'hl-color') BF.reader.pickHlColor();
     else if (act === 'copy') BF.reader.copySel();
     else if (act === 'search') BF.reader.searchSel();
     else if (act === 'vocab') BF.reader.addVocab();
@@ -48150,7 +48234,13 @@ BF.epub = {
 
   /* ── 实体解码：命名实体 + 十进制/十六进制数字实体 ── */
   _ent: function (s) {
-    const map = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+    const map = {
+      amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+      ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’',
+      mdash: '—', ndash: '–', hellip: '…', middot: '·',
+      copy: '©', reg: '®', trade: '™', times: '×', divide: '÷',
+      laquo: '«', raquo: '»', bull: '•',
+    };
     return String(s).replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, function (all, m) {
       if (m.charAt(0) === '#') {
         const code = (m.charAt(1) === 'x' || m.charAt(1) === 'X') ? parseInt(m.slice(2), 16) : parseInt(m.slice(1), 10);
@@ -48171,14 +48261,20 @@ BF.epub = {
     return m ? m[1] : '';
   },
 
-  /* ── XHTML → 纯文本：去脚本/样式/注释，块级标签换行，剥余下标签，解实体，压空白 ── */
+  /* ── XHTML → 纯文本（与墨栖 html.js 同思路：块/行分明，行内强调不换行）：
+     ① 先摘 ruby 注音——<rt>/<rp> 丢弃，只留汉字本体，否则「字zì」满屏噪音；
+     ② 去脚本/样式/注释；③ 块级标签换行；④ 剥余下标签、解实体、压空白。 */
   _html2Text: function (html) {
     let s = String(html);
+    s = s.replace(/<rt[\s\S]*?<\/rt>/gi, '');
+    s = s.replace(/<rp[\s\S]*?<\/rp>/gi, '');
+    s = s.replace(/<\/?ruby>/gi, '');
     s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ');
     s = s.replace(/<style[\s\S]*?<\/style>/gi, ' ');
     s = s.replace(/<!--[\s\S]*?-->/g, ' ');
-    s = s.replace(/<\/(?:p|div|h[1-6]|li|tr|blockquote|section|article|table)>/gi, '\n');
+    s = s.replace(/<\/(?:p|div|h[1-6]|li|tr|blockquote|section|article|table|ul|ol|dl|dd|dt|figure|figcaption|pre|header|footer|main|aside)>/gi, '\n');
     s = s.replace(/<br\s*\/?>/gi, '\n');
+    s = s.replace(/<hr\s*\/?>/gi, '\n');
     s = s.replace(/<[^>]+>/g, ' ');
     s = this._ent(s);
     return s.replace(/\r/g, '').split('\n')

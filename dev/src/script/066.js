@@ -322,7 +322,7 @@ BF.reader.updateRemain = function () {
         card.classList.remove('show');
       } else {
         card.innerHTML = _state === 'last'
-          ? '<span>全书读完 🎉</span><button class="btn btn-xs" data-review-card="" aria-label="本书回顾">回顾本书</button>'
+          ? '<span>全书读完 🎉 你把它读完了</span><button class="btn btn-xs" data-review-card="" aria-label="本书回顾">回顾本书</button>'
           : '<span>本章读完，继续往下读？</span><button class="btn btn-xs" data-next-chapter="" aria-label="下一章">下一章 →</button>';
         card.classList.add('show');
       }

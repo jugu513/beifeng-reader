@@ -91,7 +91,7 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT/EPUB →</span>' +
+          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB →</span>' +
         '</div>';
 
     const quick = [

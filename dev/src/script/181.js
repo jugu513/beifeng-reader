@@ -67,7 +67,13 @@ BF.epub = {
 
   /* ── 实体解码：命名实体 + 十进制/十六进制数字实体 ── */
   _ent: function (s) {
-    const map = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+    const map = {
+      amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+      ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’',
+      mdash: '—', ndash: '–', hellip: '…', middot: '·',
+      copy: '©', reg: '®', trade: '™', times: '×', divide: '÷',
+      laquo: '«', raquo: '»', bull: '•',
+    };
     return String(s).replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, function (all, m) {
       if (m.charAt(0) === '#') {
         const code = (m.charAt(1) === 'x' || m.charAt(1) === 'X') ? parseInt(m.slice(2), 16) : parseInt(m.slice(1), 10);
@@ -88,14 +94,20 @@ BF.epub = {
     return m ? m[1] : '';
   },
 
-  /* ── XHTML → 纯文本：去脚本/样式/注释，块级标签换行，剥余下标签，解实体，压空白 ── */
+  /* ── XHTML → 纯文本（与墨栖 html.js 同思路：块/行分明，行内强调不换行）：
+     ① 先摘 ruby 注音——<rt>/<rp> 丢弃，只留汉字本体，否则「字zì」满屏噪音；
+     ② 去脚本/样式/注释；③ 块级标签换行；④ 剥余下标签、解实体、压空白。 */
   _html2Text: function (html) {
     let s = String(html);
+    s = s.replace(/<rt[\s\S]*?<\/rt>/gi, '');
+    s = s.replace(/<rp[\s\S]*?<\/rp>/gi, '');
+    s = s.replace(/<\/?ruby>/gi, '');
     s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ');
     s = s.replace(/<style[\s\S]*?<\/style>/gi, ' ');
     s = s.replace(/<!--[\s\S]*?-->/g, ' ');
-    s = s.replace(/<\/(?:p|div|h[1-6]|li|tr|blockquote|section|article|table)>/gi, '\n');
+    s = s.replace(/<\/(?:p|div|h[1-6]|li|tr|blockquote|section|article|table|ul|ol|dl|dd|dt|figure|figcaption|pre|header|footer|main|aside)>/gi, '\n');
     s = s.replace(/<br\s*\/?>/gi, '\n');
+    s = s.replace(/<hr\s*\/?>/gi, '\n');
     s = s.replace(/<[^>]+>/g, ' ');
     s = this._ent(s);
     return s.replace(/\r/g, '').split('\n')

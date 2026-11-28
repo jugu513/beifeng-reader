@@ -95,9 +95,9 @@ const FIXTURE_A = buildZip([
   <navPoint id="n2" playOrder="2"><navLabel><text>第2章 炉火</text></navLabel><content src="ch2.xhtml#p2"/></navPoint>
 </navMap></ncx>` },
   { name: 'OEBPS/ch1.xhtml', data: `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>c1</title><style>p{margin:0}</style></head>
-<body><h1>第1章 檐水与长街</h1><p>他把信纸对折，又展开，<span>字迹已经被指尖磨得模糊了</span>。</p><p>檐下的冰锥滴着水。</p></body></html>` },
+<body><h1>第1章 檐水与长街</h1><p>他把信纸对折，又展开，<span>字迹已经被指尖磨得模糊了</span>。</p><p>檐下的冰锥滴着水。</p><p><ruby>北<rt>běi</rt>风<rt>fēng</rt></ruby>从巷口拐进来。</p></body></html>` },
   { name: 'OEBPS/ch2.xhtml', data: `<html xmlns="http://www.w3.org/1999/xhtml"><head><title>c2</title></head>
-<body><h1>第2章 炉火</h1><p>茶炉上的水开了&amp;白汽顶得壶盖轻轻跳动。</p></body></html>` },
+<body><h1>第2章 炉火</h1><p>茶炉上的水开了&amp;白汽顶得壶盖轻轻跳动。</p><p>他说：&ldquo;今天格外冷&rdquo;&hellip;</p></body></html>` },
   { name: 'OEBPS/ch3.xhtml', data: `<html xmlns="http://www.w3.org/1999/xhtml"><body>   </body></html>` },
   { name: 'OEBPS/cover.png', data: Buffer.from([0x89, 0x50, 0x4e, 0x47]), store: true },
 ]);
@@ -141,6 +141,8 @@ const a1 = A.chapters[0].content;
 t.check('A: 正文抽取（跨标签拼接）', a1.includes('他把信纸对折') && a1.includes('字迹已经被指尖磨得模糊了') && a1.includes('檐下的冰锥滴着水'));
 t.check('A: 无标签残留', !a1.includes('<') && !a1.includes('style'));
 t.check('A: 实体解码（&amp; → &）', A.chapters[1].content.includes('开了&白汽'));
+t.check('A: ruby 注音剥离（只留汉字）', a1.includes('北风从巷口拐进来') && !a1.includes('běi') && !a1.includes('fēng'));
+t.check('A: 排版实体（&ldquo;/&hellip; → “/…）', A.chapters[1].content.includes('“今天格外冷”…'));
 t.check('A: h1 与 NCX 一致时标题非空', A.chapters[0].title.length > 0);
 
 /* fixture B：nav 目录 */
