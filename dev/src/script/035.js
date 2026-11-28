@@ -128,7 +128,7 @@ BF.app.renderHome = function () {
   const rc = document.getElementById('recent-scroll');
   if (rc) {
     if (!recent.length) {
-      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入 TXT/EPUB</button></div>';
+      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入书籍</button></div>';
     } else {
       rc.innerHTML = recent.map(BF.app.recentCardHTML).join('');
     }

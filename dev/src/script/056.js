@@ -21,9 +21,9 @@
     _dragDepth = 0;
     const card = document.querySelector('.add-card');
     if (card) card.classList.remove('dragover');
-    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json|epub)$/i.test(f.name));
+    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json|epub|pdf|mobi|azw3?)$/i.test(f.name));
     if (files.length) BF.library.importFiles(files);
-    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT / EPUB 文件');
+    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT / EPUB / PDF / MOBI 文件');
   });
 })();
 

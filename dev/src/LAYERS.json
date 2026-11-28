@@ -9,7 +9,7 @@
  },
  "dist": {
   "core": 32,
-  "domain": 62,
+  "domain": 64,
   "boot": 24,
   "ui": 64
  },
@@ -1105,6 +1105,18 @@
    "layer": "domain",
    "basis": "def:epub",
    "title": "L13. EPUB 导入（零依赖 zip 解包 + 纯文本抽取）"
+  },
+  {
+   "n": "182",
+   "layer": "domain",
+   "basis": "def:mobi",
+   "title": "L14. MOBI/AZW3 导入（PalmDB + PalmDOC LZ77 + EXTH）"
+  },
+  {
+   "n": "183",
+   "layer": "domain",
+   "basis": "def:pdf",
+   "title": "L15. PDF 文本抽取（零依赖最小实现，不面向扫描件）"
   }
  ]
 }

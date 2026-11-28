@@ -24,7 +24,7 @@ const PKG_FILES = [
   '北风V0.0.1-alpha.html', '启动北风.bat', '安装环境.bat', '校验文件.bat',
   '创建桌面快捷方式.bat', 'README.md', 'LICENSE', '北风.ico',
 ];
-const EXPECT_MD5 = '85deffde31e84b31c00fbc0a54a7f94b';
+const EXPECT_MD5 = '37d4fe0ba1ee0abf8c9b6e032fcf7274';
 
 /* ⓪ BOM 校验：NSIS 只认带 BOM 的 UTF-8 脚本里的中文字面量 */
 const head = fs.readFileSync(NSI).subarray(0, 3);

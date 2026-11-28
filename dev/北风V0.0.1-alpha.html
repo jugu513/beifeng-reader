@@ -5488,7 +5488,7 @@ body.a-line .noti-card {
     <div class="home-right">
       <div>
         <div class="section-title">最近在读</div>
-        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import="">导入 TXT/EPUB</button></div></div>
+        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import="">导入书籍</button></div></div>
       </div>
       <div>
         <div class="daily-quote" id="daily-quote">“读书破万卷，下笔如有神。”<div class="source">—— 杜甫</div></div>
@@ -5601,13 +5601,13 @@ body.a-line .noti-card {
     </div>
     <div class="books-grid grid" id="books-grid"></div>
     <!-- 浮动导入按钮（仅书架页可见，CSS 控制悬浮位置） -->
-    <button class="bf-fab" id="bf-fab-import" data-trigger-import="" title="导入 TXT / EPUB / 剪贴板 / 网址" aria-label="导入书籍">
+    <button class="bf-fab" id="bf-fab-import" data-trigger-import="" title="导入 TXT / EPUB / PDF / MOBI / 剪贴板 / 网址" aria-label="导入书籍">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 5v14M5 12h14"/>
       </svg>
     </button>
   </div>
-  <input type="file" id="file-input" accept=".txt,.text,.json,.epub" multiple="" style="display:none" data-file-input="">
+  <input type="file" id="file-input" accept=".txt,.text,.json,.epub,.pdf,.mobi,.azw,.azw3" multiple="" style="display:none" data-file-input="">
 </div>
 
 <!-- ===== NOTES（笔记 Tab 聚合首页）===== -->
@@ -11523,11 +11523,11 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB →</span>' +
+          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB/PDF/MOBI →</span>' +
         '</div>';
 
     const quick = [
-      { cmd: 'import.txt', t: '导入 TXT/EPUB', d: '本地文件' },
+      { cmd: 'import.txt', t: '导入 TXT/EPUB/PDF/MOBI', d: '本地文件' },
       { cmd: 'import.clipboard', t: '剪贴板', d: '即贴即存' },
       { cmd: 'import.url', t: '网址', d: '抓取正文' },
       { cmd: 'across.open', t: '跨书检索', d: '全库找一句' },
@@ -11609,7 +11609,7 @@ BF.qj = (function () {
       '<div class="qj-shelfbar">' +
         '<input type="text" id="qj-shelf-q" placeholder="在书架里找一本书…" value="' + escAttr(shelfQ.q) + '" autocomplete="off" spellcheck="false">' +
         sortBtn('recent', '最近在读') + sortBtn('added', '最近导入') + sortBtn('title', '书名') +
-        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入 TXT/EPUB</button>' +
+        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入书籍</button>' +
         '<span class="qj-shelfmeta">共 ' + n + ' 册' + (k ? ' · 命中 ' + bks.length : '') + '</span>' +
       '</div>' +
       '<div class="qj-tickets">' + tickets + '</div>';
@@ -12025,7 +12025,7 @@ BF.app.renderHome = function () {
   const rc = document.getElementById('recent-scroll');
   if (rc) {
     if (!recent.length) {
-      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入 TXT/EPUB</button></div>';
+      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入书籍</button></div>';
     } else {
       rc.innerHTML = recent.map(BF.app.recentCardHTML).join('');
     }
@@ -13046,7 +13046,7 @@ BF.app.renderBookshelf = function (opts) {
 
   const addCard = '<div class="add-card" data-trigger-import>' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB · 拖拽或点击</span>' +
+    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB/PDF/MOBI · 拖拽或点击</span>' +
     /* 这两个按钮必须收在导入卡内部：若作为 grid-column:1/-1 的整行元素
        插在网格中间，会把第一行书卡劈到第二行，多本书时整个网格从中间断开 */
     '<span style="display:flex;gap:6px;justify-content:center;margin-top:10px">' +
@@ -13070,7 +13070,7 @@ BF.app.renderBookshelf = function (opts) {
     if (sq && filters.length) { head = '没有同时满足条件的书'; sub = '筛选：' + filters.join('、') + ' · 关键词：' + BF.dom.esc(shown); clearWhat = 'both'; }
     else if (filters.length) { head = '这个筛选下没有书'; sub = '当前筛选：' + filters.join('、'); clearWhat = 'filter'; }
     else if (sq) { head = '没有匹配「' + BF.dom.esc(shown) + '」的书'; sub = '书名整段包含才算命中，换个关键词或清掉搜索'; clearWhat = 'search'; }
-    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB 拖进来，或点右下角的 + 导入'; }
+    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB/PDF/MOBI 拖进来，或点右下角的 + 导入'; }
     grid.innerHTML = addCard +
       '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
       '<p>' + head + '</p><div class="sub">' + sub + '</div>' +
@@ -15269,24 +15269,37 @@ BF.library.importFile = async function (file, opts) {
   /* 读缓冲后检查中止（尚未解码，无状态需清理） */
   if (_aborted()) return { status: 'aborted' };
 
-  /* EPUB 分流（L13）：zip 容器不进文本解码/乱码判据——那套判据是给纯文本定的，
-     套在二进制上只会把好书误报成乱码。解析失败如实报错，不产出半成品书。 */
+  /* 二进制格式分流（L13/L14/L15）：容器不进「文本解码」那一步——那是给纯文本定的；
+     但抽出来的纯文本一律过乱码判据（扫描件/坏编码抽出来的是乱码，别静默入库）。
+     解析失败如实报错，不产出半成品书。 */
   let chapters = null;
   let enc = '';
-  if (BF.epub && BF.epub.sniff(buf, rawName)) {
-    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 EPUB《' + name + '》…');
-    let ep = null;
+  const _binFmt = (BF.epub && BF.epub.sniff(buf, rawName)) ? 'epub'
+    : (BF.mobi && BF.mobi.sniff(buf, rawName)) ? 'mobi'
+    : (BF.pdf && BF.pdf.sniff(buf, rawName)) ? 'pdf' : '';
+  if (_binFmt) {
+    const _label = _binFmt === 'epub' ? 'EPUB' : _binFmt === 'mobi' ? 'MOBI' : 'PDF';
+    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 ' + _label + '《' + name + '》…');
     try {
-      ep = await BF.epub.parse(buf);
-    } catch (eEP) {
-      BF.err.report('import.epub', eEP);
-      BF.noti.warn('《' + name + '》EPUB 解析失败：' + ((eEP && eEP.message) || eEP));
-      return { status: 'epubFail' };
-    }
-    chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
-    if (!chapters.length) {
-      BF.noti.warn('《' + name + '》EPUB 没有可读正文，已跳过');
-      return { status: 'empty' };
+      if (_binFmt === 'epub') {
+        const ep = await BF.epub.parse(buf);
+        chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+        if (!chapters.length) throw new Error('没有可读正文');
+      } else {
+        const bp = _binFmt === 'mobi' ? await BF.mobi.parse(buf) : await BF.pdf.parse(buf);
+        const bText = bp && bp.text;
+        if (!bText || !bText.trim()) throw new Error('没有可读正文');
+        const _gB = BF.library.garbleCheck(bText, '文件');
+        if (_gB.blocked) throw new Error(_gB.report);
+        if (_gB.suspect) BF.library.garbleNotice(_gB.report);
+        if (BF.app && BF.app.setImport) BF.app.setImport(30, '分章《' + name + '》…');
+        chapters = await BF.smart.chapters(bText);
+        if (!chapters.length) throw new Error('分章结果为空');
+      }
+    } catch (eBin) {
+      BF.err.report('import.' + _binFmt, eBin);
+      BF.noti.warn('《' + name + '》' + _label + ' 解析失败：' + ((eBin && eBin.message) || eBin));
+      return { status: 'parseFail' };
     }
     enc = 'utf-8';
     if (BF.app && BF.app.setImport) BF.app.setImport(35, '分章完成 · ' + chapters.length + ' 章');
@@ -16289,9 +16302,9 @@ BF.app.closeImport = function () {
     _dragDepth = 0;
     const card = document.querySelector('.add-card');
     if (card) card.classList.remove('dragover');
-    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json|epub)$/i.test(f.name));
+    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json|epub|pdf|mobi|azw3?)$/i.test(f.name));
     if (files.length) BF.library.importFiles(files);
-    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT / EPUB 文件');
+    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT / EPUB / PDF / MOBI 文件');
   });
 })();
 
@@ -16449,17 +16462,33 @@ BF.library.importURL = async function (url) {
     if (_aborted()) return _abortExit();
     BF.app.setImport(40, '正在解析...');
     const srcName = decodeURIComponent(u.pathname.split('/').pop() || '') || u.hostname;
-    /* EPUB 分流（L13）：直链 .epub / PK 魔数走容器解析，不进文本解码与乱码判据——
-       与文件通道同一条规矩：失败就如实抛错，不产出半成品书。 */
+    /* 二进制格式分流：与文件通道同一套（EPUB/MDPI/PDF），失败如实抛错 */
     let chapters = null;
     let enc = '';
-    if (BF.epub && BF.epub.sniff(buf, srcName)) {
-      BF.app.setImport(45, '解析 EPUB...');
-      let ep = null;
-      try { ep = await BF.epub.parse(buf); }
-      catch (eEP) { throw new Error('EPUB 解析失败：' + ((eEP && eEP.message) || eEP)); }
-      chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
-      if (!chapters.length) throw new Error('EPUB 没有可读正文');
+    const _uFmt = (BF.epub && BF.epub.sniff(buf, srcName)) ? 'epub'
+      : (BF.mobi && BF.mobi.sniff(buf, srcName)) ? 'mobi'
+      : (BF.pdf && BF.pdf.sniff(buf, srcName)) ? 'pdf' : '';
+    if (_uFmt) {
+      BF.app.setImport(45, '解析 ' + (_uFmt === 'epub' ? 'EPUB' : _uFmt === 'mobi' ? 'MOBI' : 'PDF') + '...');
+      try {
+        if (_uFmt === 'epub') {
+          const ep = await BF.epub.parse(buf);
+          chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+          if (!chapters.length) throw new Error('EPUB 没有可读正文');
+        } else {
+          const bp = _uFmt === 'mobi' ? await BF.mobi.parse(buf) : await BF.pdf.parse(buf);
+          const bText = bp && bp.text;
+          if (!bText || !bText.trim()) throw new Error('没有可读正文');
+          const _gU = BF.library.garbleCheck(bText, '在线内容');
+          if (_gU.blocked) throw new Error(_gU.report);
+          if (_gU.suspect) BF.library.garbleNotice(_gU.report);
+          chapters = await BF.smart.chapters(bText);
+          if (!chapters.length) throw new Error('分章结果为空');
+        }
+      } catch (eU) {
+        throw new Error((_uFmt === 'epub' ? 'EPUB' : _uFmt === 'mobi' ? 'MOBI' : 'PDF') +
+          ' 解析失败：' + ((eU && eU.message) || eU));
+      }
       enc = 'utf-8';
     } else {
       /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
@@ -16481,7 +16510,7 @@ BF.library.importURL = async function (url) {
       enc = dec.enc || '';
     }
     if (_aborted()) return _abortExit();
-    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(txt|epub)$/i, ''));
+    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(?:txt|epub|pdf|mobi|azw3?)$/i, ''));
     const id = BF.library.newBookId();
     const book = {
       id, title: name, size: buf.byteLength, importedAt: Date.now(),
@@ -29142,14 +29171,14 @@ BF.ai.tools = {
     catch (e) { return '重新分章失败：' + (e && e.message || e); }
   },
   /* ---- 组4 导入 / 导出 / 备份：异步一律 await，回执说真实结果 ---- */
-  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT/EPUB 文件；原生选择器可能要求用户手势）'; },
+  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT/EPUB/PDF/MOBI 文件；原生选择器可能要求用户手势）'; },
   importClipboard: async function () {
     try { await BF.library.importClipboard(); return '已触发剪贴板导入（结果以界面通知为准）'; }
     catch (e) { return '剪贴板导入失败：' + (e && e.message || e); }
   },
   importURL: async function (url) {
     const u = String(url || '').trim();
-    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT/EPUB 直链';
+    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT/EPUB/PDF/MOBI 直链';
     try { await BF.library.importURL(u); return '已触发在线导入：' + u + '（结果以界面通知为准）'; }
     catch (e) { return '在线导入失败：' + (e && e.message || e); }
   },
@@ -39080,9 +39109,9 @@ BF.settingsUI.UPDATE_LOG = [
         '配色均达到 WCAG AA 对比度标准；四套场景预设：沉浸阅读 / 深夜护眼 / 纸感浅色 / 紧凑速读',
       ]},
       { name: '数据', items: [
-        '导入 TXT/EPUB：本地文件 / 剪贴板 / 网址（EPUB 支持本地与直链），编码自动识别，EPUB 提取纯文本与目录；书架支持搜索、排序、置顶、收藏、标签，书卡上的快捷按钮可自选（最多三枚）',
+        '导入 TXT/EPUB/PDF/MOBI：本地文件 / 剪贴板 / 网址（EPUB、PDF、MOBI 支持本地与直链），编码自动识别，EPUB 提取目录、PDF 与 MOBI 抽取正文；书架支持搜索、排序、置顶、收藏、标签，书卡上的快捷按钮可自选（最多三枚）',
         '本地单个文件上限 64MB：超过就明说并跳过，不再让整页冻住',
-        '导入过程分阶段报进度：解码或 EPUB 解析 → 分章 → 逐章写入，单本大书也不再全程停在 0%',
+        '导入过程分阶段报进度：解码或容器解析 → 分章 → 逐章写入，单本大书也不再全程停在 0%',
         '书架记录读坏时不静默丢书：原文留副本、该项重置，并在「数据」页给出「从正文库恢复书架」——恢复出的书名取自各自第一章，字数无从还原的标「字数未知」',
         '不属于任何书的残留正文不大批自动删：量级过大时先在「数据」页列出段数与目录组数，人确认后才清理',
         '损坏隔离区（数据页）：被读坏的键逐条给出大小与进入时间，可整区导出（导出前剥掉密钥类字段，文件仍可能含敏感内容，别外发）或逐条清除',
@@ -48451,6 +48480,645 @@ BF.epub = {
   },
 };
 /* EPUB 段结束 */
+/* L14. MOBI / AZW3 导入 —— 零依赖 PalmDB 解析。
+   结构（据 MobileRead wiki 与 calibre cPalmdoc 交叉核对）：
+   PalmDB 头 78 字节 + 记录表（每条 8 字节偏移）→ record0 = PalmDOC 头 16B + MOBI 头 + EXTH
+   → 正文记录 [1, PalmDOC.recordCount+1) → 尾随数据裁剪（extra data flags，calibre get_trailing_data 同款）
+   → PalmDOC LZ77 解压（与 calibre cPalmdoc 逐分支一致）→ UTF-8 / CP1252 / GB18030 解码
+   → 纯文本交 BF.smart.chapters 统一分章（本格式没有可靠目录，分章交给既有规则，不另起炉灶）。
+   取舍：HUFF/CDIC（compression=17480）与 DRM 加密一律如实报错，不产出半本书；
+   AZW3/KF8（mobiType=248）与 MOBI 同容器同记录，正文抽取同法，不单开分支。 */
+BF.mobi = {
+  sniff: function (buf, name) {
+    if (/\.(?:mobi|azw3?)$/i.test(String(name || ''))) return true;
+    if (!buf || buf.length < 68) return false;
+    const td = new TextDecoder('latin1');
+    const id = td.decode(buf.subarray(60, 68));
+    return id === 'BOOKMOBI' || id === 'TEXtREAd';
+  },
+
+  /* ── PalmDOC LZ77（calibre cPalmdoc.c 同款分支）：
+     0x01-0x08 = 后跟 N 个字面量；0x00/0x09-0x7F = 字面量；
+     0xC0-0xFF = 空格 + (c^0x80)；0x80-0xBF = 距离长度对（14 位：11 距离 + 3 长度，长度 = 低位+3） */
+  _palmdoc: function (input) {
+    let cap = Math.max(input.length * 4, 1024);
+    let out = new Uint8Array(cap);
+    let o = 0;
+    const ensure = function (need) {
+      if (o + need <= cap) return;
+      while (cap < o + need) cap *= 2;
+      const b = new Uint8Array(cap);
+      b.set(out.subarray(0, o));
+      out = b;
+    };
+    let i = 0;
+    const n = input.length;
+    while (i < n) {
+      const c = input[i++];
+      if (c >= 1 && c <= 8) {
+        ensure(c);
+        for (let k = 0; k < c && i < n; k++) out[o++] = input[i++];
+      } else if (c <= 0x7f) {
+        ensure(1); out[o++] = c;
+      } else if (c >= 0xc0) {
+        ensure(2); out[o++] = 0x20; out[o++] = c ^ 0x80;
+      } else if (i < n) {
+        const v = (c << 8) + input[i++];
+        const di = (v & 0x3fff) >> 3;
+        const ln = (v & 7) + 3;
+        if (di <= o && di > 0) {
+          ensure(ln);
+          for (let k = 0; k < ln; k++) { out[o] = out[o - di]; o++; }
+        }
+      }
+    }
+    return out.subarray(0, o);
+  },
+
+  /* ── 变宽整数（MOBI variable-width integer）：从尾部倒着读，
+     低 7 位累积、最高位 = 终止标志；返回 {sz, consumed} ── */
+  _decintBack: function (bytes, end) {
+    let val = 0, consumed = 0;
+    const acc = [];
+    for (let p = end - 1; p >= 0; p--) {
+      const b = bytes[p];
+      acc.push(b & 0x7f);
+      consumed++;
+      if (b & 0x80) break;
+      if (consumed > 4) break;
+    }
+    acc.reverse();
+    for (const b of acc) val = (val << 7) | b;
+    return { sz: val, consumed: consumed };
+  },
+
+  /* ── 尾随数据裁剪（calibre get_trailing_data 同款）：
+     extraDataFlags 每个置位 bit 对应一段 <payload><变宽长度>；
+     bit0 另管尾部多字节重叠字符（低 2 位定长） ── */
+  _stripTrailing: function (rec, flags) {
+    if (!flags) return rec;
+    let end = rec.length;
+    let f = flags >> 1;
+    while (f) {
+      if (f & 1) {
+        const { sz, consumed } = this._decintBack(rec, end);
+        if (sz > consumed && sz <= end) end -= sz;
+        else if (sz <= end) end -= sz;
+        else break;
+      }
+      f >>= 1;
+    }
+    if (flags & 1) {
+      if (end < 1) return rec.subarray(0, 0);
+      const sz = (rec[end - 1] & 3) + 1;
+      if (sz <= end) end -= sz;
+    }
+    return rec.subarray(0, end);
+  },
+
+  /* ── 解码：MOBI 头给了编码就按它走；老 PalmDOC 没头的，UTF-8 严格试、
+     失败转 GB18030、再失败落 CP1252（中文掌上书常见 GBK 系） ── */
+  _decode: function (bytes, encoding) {
+    const tryDec = function (label) {
+      try { return new TextDecoder(label, { fatal: true }).decode(bytes); } catch (e) { return null; }
+    };
+    if (encoding === 65001) return tryDec('utf-8') || new TextDecoder('utf-8').decode(bytes);
+    if (encoding === 1252) return new TextDecoder('windows-1252').decode(bytes);
+    return tryDec('utf-8') || tryDec('gb18030') || new TextDecoder('windows-1252').decode(bytes);
+  },
+
+  /* ── 主链路 ── */
+  parse: async function (bytes) {
+    if (!bytes || bytes.length < 86) throw new Error('文件太小，不是 MOBI');
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const u16 = function (p) { return dv.getUint16(p, false); };
+    const u32 = function (p) { return dv.getUint32(p, false); };
+    const numRec = u16(76);
+    if (numRec < 1 || 78 + numRec * 8 > bytes.length) throw new Error('PalmDB 记录表损坏');
+    const offs = [];
+    for (let i = 0; i < numRec; i++) offs.push(u32(78 + i * 8));
+    for (let i = 1; i < numRec; i++) if (offs[i] < offs[i - 1]) throw new Error('PalmDB 记录偏移乱序');
+    const recEnd = function (i) { return i < numRec - 1 ? offs[i + 1] : bytes.length; };
+    const rec0 = bytes.subarray(offs[0], recEnd(0));
+    if (rec0.length < 16) throw new Error('record0 损坏');
+    const compression = dv.getUint16(offs[0], false);
+    const encryption = dv.getUint16(offs[0] + 12, false);
+    if (encryption !== 0) throw new Error('带 DRM 加密，暂不支持');
+    if (compression === 17480) throw new Error('HUFF/CDIC 压缩暂不支持');
+    if (compression !== 1 && compression !== 2) throw new Error('未知压缩方式 ' + compression);
+
+    const td4 = new TextDecoder('latin1');
+    let encoding = 0, firstImage = 0xffffffff, fullName = '', exthTitle = '', exthAuthor = '';
+    let extraFlags = 0, textRecCount = 0;
+    const mobiId = td4.decode(rec0.subarray(16, 20));
+    if (mobiId === 'MOBI' && rec0.length >= 24) {
+      const headerLen = u32(offs[0] + 20);
+      if (rec0.length >= 32) encoding = u32(offs[0] + 28);
+      if (rec0.length >= 84) textRecCount = 0; /* PalmDOC 字段已给，占位防误读 */
+      if (rec0.length >= 112) firstImage = u32(offs[0] + 108);
+      if (rec0.length >= 92) {
+        const fnOff = u32(offs[0] + 84), fnLen = u32(offs[0] + 88);
+        if (fnLen > 0 && fnLen < 1024 && fnOff + fnLen <= rec0.length) {
+          fullName = new TextDecoder('utf-8').decode(rec0.subarray(fnOff, fnOff + fnLen)).replace(/\0+$/, '').trim();
+        }
+      }
+      if (rec0.length >= 244) extraFlags = u32(offs[0] + 240);
+      const exthFlags = rec0.length >= 132 ? u32(offs[0] + 128) : 0;
+      if ((exthFlags & 0x40) && 16 + headerLen + 12 <= rec0.length) {
+        const es = 16 + headerLen;
+        if (td4.decode(rec0.subarray(es, es + 4)) === 'EXTH') {
+          const exthLen = dv.getUint32(offs[0] + es + 4, false);
+          const cnt = dv.getUint32(offs[0] + es + 8, false);
+          let p = es + 12;
+          const bound = Math.min(es + exthLen, rec0.length);
+          for (let k = 0; k < cnt && p + 8 <= bound; k++) {
+            const t = dv.getUint32(offs[0] + p, false);
+            const l = dv.getUint32(offs[0] + p + 4, false);
+            if (l < 8 || p + l > bound) break;
+            if (t === 100 && !exthAuthor) exthAuthor = new TextDecoder('utf-8').decode(rec0.subarray(p + 8, p + l)).replace(/\0+$/, '').trim();
+            if (t === 503 && !exthTitle) exthTitle = new TextDecoder('utf-8').decode(rec0.subarray(p + 8, p + l)).replace(/\0+$/, '').trim();
+            p += l;
+          }
+        }
+      }
+    }
+    /* PDB 库名兜底（31 字节，C 串） */
+    let pdbName = '';
+    try {
+      pdbName = new TextDecoder('utf-8').decode(bytes.subarray(0, 32)).replace(/\0[\s\S]*$/, '').trim();
+    } catch (e) { pdbName = ''; }
+
+    /* 正文记录上界：PalmDOC.recordCount（= 用于正文的记录数）最权威，
+       再用 firstImage 封顶，防止把图片/FLIS 垃圾当正文解压 */
+    textRecCount = dv.getUint16(offs[0] + 8, false);
+    let end = textRecCount + 1;
+    if (!(end >= 2 && end <= numRec)) end = numRec;
+    if (firstImage >= 2 && firstImage < end) end = firstImage;
+
+    const parts = [];
+    for (let r = 1; r < end; r++) {
+      let rec = bytes.subarray(offs[r], recEnd(r));
+      if (!rec.length) continue;
+      rec = this._stripTrailing(rec, extraFlags);
+      if (compression === 2) rec = this._palmdoc(rec);
+      parts.push(rec);
+    }
+    let total = 0;
+    for (const p of parts) total += p.length;
+    if (!total) throw new Error('没有可读正文记录');
+    const joined = new Uint8Array(total);
+    let at = 0;
+    for (const p of parts) { joined.set(p, at); at += p.length; }
+    const raw = this._decode(joined, encoding);
+    if (!raw || !raw.trim()) throw new Error('正文解码为空');
+    /* MOBI 正文是 Mobi7 HTML；剥标签后交统一分章 */
+    const text = BF.epub._html2Text(raw);
+    if (!text) throw new Error('没有可读正文');
+    return {
+      title: exthTitle || fullName || pdbName || '',
+      creator: exthAuthor || '',
+      text: text,
+    };
+  },
+};
+/* MOBI 段结束 */
+/* L15. PDF 文本抽取 —— 零依赖最小实现，面向电子书类 PDF，不面向扫描件。
+   链路：按内容扫对象（经典 xref 表与对象流 ObjStm 都不依赖、各自解析）→
+   /Root → /Pages 递归 → 每页 /Contents（FlateDecode = zlib 包裹，用原生
+   DecompressionStream('deflate') 解，与 EPUB 的 raw deflate 不同）→
+   内容流里 Tj/TJ/'/" 取字 → 字体 /ToUnicode CMap（bfchar/bfrange）解码；
+   没有 ToUnicode 的按 WinAnsi/拉丁回退 → 拼成纯文本交 BF.smart.chapters 统一分章。
+   取舍（如实报，不产半成品）：扫描件（纯图页）抽不出字，全书无字则报错；
+   老编码无 ToUnicode 的中文可能出乱码，交给下游乱码判据拦；不支持的滤镜跳过该流。 */
+BF.pdf = {
+  sniff: function (buf, name) {
+    if (/\.pdf$/i.test(String(name || ''))) return true;
+    return !!(buf && buf.length > 5 && buf[0] === 0x25 && buf[1] === 0x50 &&
+      buf[2] === 0x44 && buf[3] === 0x46); /* %PDF */
+  },
+
+  /* ── 字节 ↔ 二进制字符串（latin1 映射，切片即字节精确） ── */
+  _bin: function (bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      s += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + 0x8000, bytes.length)));
+    }
+    return s;
+  },
+  _bytesOf: function (binStr) {
+    const b = new Uint8Array(binStr.length);
+    for (let i = 0; i < binStr.length; i++) b[i] = binStr.charCodeAt(i) & 0xff;
+    return b;
+  },
+
+  /* ── FlateDecode（zlib 包裹） ── */
+  _inflate: function (bytes) {
+    const ds = new DecompressionStream('deflate');
+    const stream = new Blob([bytes]).stream().pipeThrough(ds);
+    return new Response(stream).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
+  },
+
+  /* ── 流数据：dict 之后的 stream … endstream（二进制字符串切片字节精确） ── */
+  _streamData: function (body) {
+    const s = body.indexOf('stream');
+    if (s < 0) return '';
+    let p = s + 6;
+    if (body.charCodeAt(p) === 13) p++;
+    if (body.charCodeAt(p) === 10) p++;
+    const e = body.indexOf('endstream', p);
+    return e < 0 ? '' : body.slice(p, e);
+  },
+
+  /* ── CMap 解析：codespace 定字宽，bfchar/bfrange 建码表 ── */
+  _parseCMap: function (cmap) {
+    const table = {};
+    let width = 1;
+    const cs = cmap.match(/begincodespacerange\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/);
+    if (cs) width = Math.max(1, cs[1].length / 2);
+    const hexToStr = function (h) {
+      let out = '';
+      for (let i = 0; i + 4 <= h.length; i += 4) {
+        const u = parseInt(h.substr(i, 4), 16);
+        if (isFinite(u)) out += String.fromCharCode(u);
+      }
+      return out;
+    };
+    const put = function (code, str) { if (str) table[code] = str; };
+    let m;
+    const fc = /beginbfchar([\s\S]*?)endbfchar/g;
+    while ((m = fc.exec(cmap))) {
+      const pair = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g;
+      let p;
+      while ((p = pair.exec(m[1]))) put(parseInt(p[1], 16), hexToStr(p[2]));
+    }
+    const fr = /beginbfrange([\s\S]*?)endbfrange/g;
+    while ((m = fr.exec(cmap))) {
+      const range = /<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*(<([0-9A-Fa-f]+)>|\[([\s\S]*?)\])/g;
+      let r;
+      while ((r = range.exec(m[1]))) {
+        const lo = parseInt(r[1], 16), hi = parseInt(r[2], 16);
+        if (!isFinite(lo) || !isFinite(hi) || hi < lo) continue;
+        if (r[4]) { /* 码点递增：末 16 位 +i */
+          const base = parseInt(r[4], 16);
+          const n = Math.min(hi - lo, 65535);
+          for (let i = 0; i <= n; i++) put(lo + i, hexToStr((base + i).toString(16).padStart(r[4].length, '0')));
+        } else if (r[5] != null) { /* 数组形式逐个给 */
+          const items = r[5].match(/<([0-9A-Fa-f]+)>/g) || [];
+          const n = Math.min(hi - lo, items.length - 1);
+          for (let i = 0; i <= n; i++) put(lo + i, hexToStr(items[i].slice(1, -1)));
+        }
+      }
+    }
+    return { table: table, width: width };
+  },
+
+  /* ── 内容流取字：手写轻量分词（PDF 内容流的字符串带转义与嵌套括号，正则啃不动） ── */
+  _contentText: function (content, fontMaps, defaultMap) {
+    const out = [];
+    let i = 0;
+    const n = content.length;
+    let curMap = defaultMap;
+    let pending = [];        /* 操作数栈：字符串与数字混放 */
+    const readParen = function (start) { /* ( … ) 字符串，返回 {s, end} */
+      let depth = 0, p = start;
+      let s = '';
+      for (; p < n; p++) {
+        const ch = content.charAt(p);
+        if (ch === '\\') {
+          const nx = content.charAt(p + 1);
+          if (nx === 'n') { s += '\n'; p++; }
+          else if (nx === 'r') { s += '\r'; p++; }
+          else if (nx === 't') { s += '\t'; p++; }
+          else if (nx === '(' || nx === ')' || nx === '\\') { s += nx; p++; }
+          else if (nx >= '0' && nx <= '7') {
+            let oct = '';
+            for (let k = 0; k < 3 && p + 1 < n && content.charAt(p + 1) >= '0' && content.charAt(p + 1) <= '7'; k++) {
+              oct += content.charAt(++p);
+            }
+            s += String.fromCharCode(parseInt(oct, 8) & 0xff);
+          } else { s += nx; p++; }
+          continue;
+        }
+        if (ch === '(') { depth++; if (depth > 1) s += ch; continue; }
+        if (ch === ')') { depth--; if (depth === 0) return { s: s, end: p + 1 }; s += ch; continue; }
+        if (depth > 0) s += ch;
+      }
+      return { s: s, end: p };
+    };
+    const decodeStr = function (s) {
+      const map = curMap || defaultMap;
+      const bytes = [];
+      for (let k = 0; k < s.length; k++) bytes.push(s.charCodeAt(k) & 0xff);
+      let res = '';
+      if (map && map.width === 2) {
+        for (let k = 0; k + 1 < bytes.length; k += 2) {
+          const code = (bytes[k] << 8) | bytes[k + 1];
+          res += map.table[code] || '';
+        }
+      } else if (map && map.table) {
+        for (let k = 0; k < bytes.length; k++) {
+          res += map.table[bytes[k]] !== undefined ? map.table[bytes[k]] : String.fromCharCode(bytes[k]);
+        }
+      } else {
+        res = new TextDecoder('windows-1252').decode(new Uint8Array(bytes));
+      }
+      return res;
+    };
+    const isOp = function (w) { return /^[A-Za-z'"*]{1,3}$/.test(w); };
+    let word = '';
+    const flushWord = function () {
+      if (!word) return;
+      const w = word; word = '';
+      if (!isOp(w)) { pending.push({ num: parseFloat(w) }); return; }
+      if (w === 'Tj' || w === "'") {
+        if (w === "'") out.push('\n');
+        /* 栈上可能压着多段字符串操作数（<4E2D><6587> Tj 这类写法）：全部取出拼接，
+           只取栈顶会把前面的字全丢掉——失败得很难看（每行只剩最后一个字） */
+        const strs = pending.filter(function (x) { return x.s !== undefined; });
+        if (strs.length) out.push(strs.map(function (x) { return decodeStr(x.s); }).join(''));
+      } else if (w === 'TJ') {
+        const last = pending.pop();
+        if (last && last.arr) {
+          for (const it of last.arr) {
+            if (it.s !== undefined) out.push(decodeStr(it.s));
+            else if (typeof it.num === 'number' && it.num >= 500) out.push(' ');
+          }
+        }
+      } else if (w === '"') {
+        out.push('\n');
+        pending = [];
+      } else if (w === 'Tf') {
+        const name = pending.filter(function (x) { return x.name; }).pop();
+        if (name && fontMaps[name.name]) curMap = fontMaps[name.name];
+        pending = [];
+      } else if (w === 'T*' || w === 'Tm' || w === 'Td' || w === 'TD') {
+        out.push('\n');
+        pending = [];
+      } else {
+        pending = [];
+      }
+    };
+    while (i < n) {
+      const ch = content.charAt(i);
+      if (ch === '(') {
+        const r = readParen(i);
+        pending.push({ s: r.s });
+        i = r.end;
+        continue;
+      }
+      if (ch === '<' && content.charAt(i + 1) !== '<') { /* 十六进制串 */
+        const e = content.indexOf('>', i);
+        if (e > 0) {
+          let h = content.slice(i + 1, e).replace(/\s+/g, '');
+          if (h.length % 2) h += '0';
+          pending.push({ s: h });
+          /* hex 串按 hex 解：转成字节串交给 decodeStr 前先落地 */
+          let raw = '';
+          for (let k = 0; k < h.length; k += 2) raw += String.fromCharCode(parseInt(h.substr(k, 2), 16));
+          pending[pending.length - 1] = { s: raw };
+          i = e + 1;
+          continue;
+        }
+      }
+      if (ch === '[') { /* 数组操作数（TJ 用） */
+        let p = i + 1;
+        const arr = [];
+        while (p < n && content.charAt(p) !== ']') {
+          const c2 = content.charAt(p);
+          if (c2 === '(') {
+            const r = readParen(p);
+            arr.push({ s: r.s });
+            p = r.end;
+          } else if (c2 === '<') {
+            const e = content.indexOf('>', p);
+            if (e > 0) {
+              let h = content.slice(p + 1, e).replace(/\s+/g, '');
+              if (h.length % 2) h += '0';
+              let raw = '';
+              for (let k = 0; k < h.length; k += 2) raw += String.fromCharCode(parseInt(h.substr(k, 2), 16));
+              arr.push({ s: raw });
+              p = e + 1;
+              continue;
+            }
+            p++;
+          } else if (/\s/.test(c2)) p++;
+          else if (c2 === '-' || (c2 >= '0' && c2 <= '9')) {
+            let num = '';
+            while (p < n && /[-0-9.]/.test(content.charAt(p))) num += content.charAt(p++);
+            arr.push({ num: parseFloat(num) });
+          } else p++;
+        }
+        pending.push({ arr: arr });
+        i = p + 1;
+        continue;
+      }
+      if (ch === '/' && !word) { /* 资源名（/F1 这类） */
+        let nm = '';
+        while (i + 1 < n && /[A-Za-z0-9+_.-]/.test(content.charAt(i + 1))) nm += content.charAt(++i);
+        pending.push({ name: nm });
+        i++;
+        continue;
+      }
+      if (/\s/.test(ch)) { flushWord(); i++; continue; }
+      if (ch === ']') { flushWord(); i++; continue; }
+      word += ch;
+      i++;
+    }
+    flushWord();
+    return out.join('');
+  },
+
+  /* ── 主链路 ── */
+  parse: async function (bytes) {
+    if (!bytes || bytes.length < 16 || bytes[0] !== 0x25) throw new Error('不是 PDF（缺 %PDF- 头）');
+    const bin = this._bin(bytes);
+    const self = this;
+
+    /* ① 按内容扫对象；随后展开对象流（ObjStm 内层对象覆盖同号外层） */
+    const objects = {};
+    const re = /(\d+)\s+\d+\s+obj\b/g;
+    let m;
+    while ((m = re.exec(bin))) {
+      const start = m.index + m[0].length;
+      const end = bin.indexOf('endobj', start);
+      objects[m[1]] = end < 0 ? bin.slice(start) : bin.slice(start, end);
+    }
+    const objKeys = Object.keys(objects);
+    for (const k of objKeys) {
+      const body = objects[k];
+      if (!/\/Type\s*\/ObjStm/.test(body)) continue;
+      try {
+        const data = self._streamData(body);
+        if (!data) continue;
+        const firstM = body.match(/\/First\s+(\d+)/);
+        const nM = body.match(/\/N\s+(\d+)/);
+        if (!firstM) continue;
+        const inflated = await self._inflate(self._bytesOf(data));
+        const inner = self._bin(inflated);
+        const first = parseInt(firstM[1], 10);
+        const cnt = nM ? parseInt(nM[1], 10) : 9999;
+        const header = inner.slice(0, first);
+        const nums = header.match(/\d+/g) || [];
+        for (let i = 0; i + 1 < nums.length && i / 2 < cnt; i += 2) {
+          const on = nums[i], off = parseInt(nums[i + 1], 10);
+          const nextOff = i + 3 < nums.length ? parseInt(nums[i + 3], 10) : inner.length;
+          objects[on] = inner.slice(first + off, first + nextOff);
+        }
+      } catch (e) { /* 对象流坏了就跳过它，外面还有常规对象可用 */ }
+    }
+
+    /* ② Root → Pages 递归 */
+    const rootM = bin.match(/\/Root\s+(\d+)\s+\d+\s+R/);
+    if (!rootM) throw new Error('缺 /Root（不是合法 PDF）');
+    const pageBodies = [];
+    const seen = {};
+    const walk = async function (num, depth) {
+      if (depth > 32 || seen[num]) return;
+      seen[num] = 1;
+      const body = objects[num];
+      if (!body) return;
+      if (/\/Kids\s*\[/.test(body)) {
+        const kidsM = body.match(/\/Kids\s*\[([\s\S]*?)\]/);
+        if (kidsM) {
+          const kids = kidsM[1].match(/(\d+)\s+\d+\s+R/g) || [];
+          for (const kd of kids) {
+            const kn = (kd.match(/(\d+)/) || [])[1];
+            if (kn) await walk(kn, depth + 1);
+          }
+        }
+        return;
+      }
+      /* 只有带 /Contents 的才是叶子页——Catalog 也没有 Kids，靠 /Pages 引用下钻 */
+      if (/\/Contents/.test(body)) { pageBodies.push(body); return; }
+      const pagesRef = body.match(/\/Pages\s+(\d+)\s+\d+\s+R/);
+      if (pagesRef) await walk(pagesRef[1], depth + 1);
+    };
+    await walk(rootM[1], 0);
+    if (!pageBodies.length) throw new Error('没有页面');
+
+    /* ③ 字体解析：资源名 → {table, width}（每页各自解析，字体对象多为共享引用） */
+    const fontCache = {};
+    const loadFont = async function (fontObjNum) {
+      if (fontCache[fontObjNum]) return fontCache[fontObjNum];
+      const fb = objects[fontObjNum];
+      let map = null;
+      if (fb) {
+        const tu = fb.match(/\/ToUnicode\s+(\d+)\s+\d+\s+R/);
+        if (tu) {
+          const tuBody = objects[tu[1]];
+          if (tuBody) {
+            try {
+              const data = self._streamData(tuBody);
+              const cm = await self._inflate(self._bytesOf(data));
+              map = self._parseCMap(self._bin(cm));
+            } catch (e) { map = null; }
+          }
+        }
+        if (!map) map = self._winAnsiMap();
+      }
+      fontCache[fontObjNum] = map;
+      return map;
+    };
+    const fontsOf = async function (pageBody) {
+      const maps = {};
+      let res = pageBody;
+      const resRef = pageBody.match(/\/Resources\s+(\d+)\s+\d+\s+R/);
+      if (resRef && objects[resRef[1]]) res = objects[resRef[1]];
+      const fontSec = /\/Font\s*<<([\s\S]*?)>>/.exec(res);
+      let pairs = [];
+      if (fontSec) pairs = fontSec[1].match(/\/[\w+.=-]+\s+\d+\s+\d+\s+R/g) || [];
+      else {
+        const fr = res.match(/\/Font\s+(\d+)\s+\d+\s+R/);
+        if (fr && objects[fr[1]]) {
+          const fb = objects[fr[1]];
+          const inline = /<<([\s\S]*?)>>/.exec(fb);
+          if (inline) pairs = inline[1].match(/\/[\w+.=-]+\s+\d+\s+\d+\s+R/g) || [];
+        }
+      }
+      for (const p of pairs) {
+        const nm = (p.match(/\/([\w+.=-]+)/) || [])[1];
+        const on = (p.match(/(\d+)\s+\d+\s+R/) || [])[1];
+        if (nm && on) maps[nm] = await loadFont(on);
+      }
+      return maps;
+    };
+
+    /* ④ 逐页：Contents（可多流、可 Flate）→ 内容流取字 */
+    const pageTexts = [];
+    for (const pb of pageBodies) {
+      const cRefs = [];
+      const arrM = pb.match(/\/Contents\s*\[([\s\S]*?)\]/);
+      if (arrM) {
+        const rs = arrM[1].match(/(\d+)\s+\d+\s+R/g) || [];
+        for (const r of rs) cRefs.push((r.match(/(\d+)/) || [])[1]);
+      } else {
+        const single = pb.match(/\/Contents\s+(\d+)\s+\d+\s+R/);
+        if (single) cRefs.push(single[1]);
+      }
+      if (!cRefs.length) continue;
+      const fontMaps = await fontsOf(pb);
+      let pageBin = '';
+      for (const cn of cRefs) {
+        const cb = objects[cn];
+        if (!cb) continue;
+        const data = self._streamData(cb);
+        if (!data) continue;
+        try {
+          const hasFlate = /\/Filter\s*(\[\s*)?\/FlateDecode/.test(cb) || /\/Filter\s*\/FlateDecode/.test(cb);
+          const raw = hasFlate ? await self._inflate(self._bytesOf(data)) : self._bytesOf(data);
+          pageBin += self._bin(raw) + '\n';
+        } catch (e) { /* 不认识的滤镜（DCT/CCITT 等）跳过该流 */ }
+      }
+      if (!pageBin) continue;
+      const txt = self._contentText(pageBin, fontMaps, self._winAnsiMap());
+      if (txt && txt.trim()) pageTexts.push(txt);
+    }
+
+    const text = pageTexts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+    if (!text) throw new Error('没有可读文本（可能是扫描件或不支持的滤镜）');
+
+    /* ⑤ 书名：/Info → /Title（尽力而为，失败留空） */
+    let title = '';
+    try {
+      const infoM = bin.match(/\/Info\s+(\d+)\s+\d+\s+R/);
+      if (infoM && objects[infoM[1]]) {
+        const ib = objects[infoM[1]];
+        let tm = ib.match(/\/Title\s*\(([\s\S]*?)\)/);
+        if (tm) title = tm[1].replace(/\\([()\\])/g, '$1');
+        else {
+          tm = ib.match(/\/Title\s*<([0-9A-Fa-f\s]+)>/);
+          if (tm) {
+            let h = tm[1].replace(/\s+/g, '');
+            if (h.substr(0, 4).toUpperCase() === 'FEFF') {
+              let u = '';
+              for (let i = 4; i + 4 <= h.length; i += 4) u += String.fromCharCode(parseInt(h.substr(i, 4), 16));
+              title = u;
+            } else {
+              let raw = '';
+              for (let i = 0; i + 1 < h.length; i += 2) raw += String.fromCharCode(parseInt(h.substr(i, 2), 16));
+              title = new TextDecoder('windows-1252').decode(new Uint8Array(raw.split('').map(function (c) { return c.charCodeAt(0) & 0xff; })));
+            }
+          }
+        }
+      }
+    } catch (e) { title = ''; }
+    return { title: String(title || '').trim(), text: text };
+  },
+
+  /* WinAnsi 单字节回退码表（0-255 逐字节过 windows-1252 解码） */
+  _winAnsiMap: function () {
+    if (BF.pdf._winCache) return BF.pdf._winCache;
+    const td = new TextDecoder('windows-1252');
+    const table = {};
+    for (let b = 0; b < 256; b++) {
+      const s = td.decode(new Uint8Array([b]));
+      table[b] = s;
+    }
+    BF.pdf._winCache = { table: table, width: 1 };
+    return BF.pdf._winCache;
+  },
+};
+/* PDF 段结束 */
 </script>
 
 <!-- ===== 全局底部 TabBar（5-Tab 骨架，笔记/我的 作为待填充页）===== -->

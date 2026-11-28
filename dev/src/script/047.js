@@ -237,24 +237,37 @@ BF.library.importFile = async function (file, opts) {
   /* 读缓冲后检查中止（尚未解码，无状态需清理） */
   if (_aborted()) return { status: 'aborted' };
 
-  /* EPUB 分流（L13）：zip 容器不进文本解码/乱码判据——那套判据是给纯文本定的，
-     套在二进制上只会把好书误报成乱码。解析失败如实报错，不产出半成品书。 */
+  /* 二进制格式分流（L13/L14/L15）：容器不进「文本解码」那一步——那是给纯文本定的；
+     但抽出来的纯文本一律过乱码判据（扫描件/坏编码抽出来的是乱码，别静默入库）。
+     解析失败如实报错，不产出半成品书。 */
   let chapters = null;
   let enc = '';
-  if (BF.epub && BF.epub.sniff(buf, rawName)) {
-    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 EPUB《' + name + '》…');
-    let ep = null;
+  const _binFmt = (BF.epub && BF.epub.sniff(buf, rawName)) ? 'epub'
+    : (BF.mobi && BF.mobi.sniff(buf, rawName)) ? 'mobi'
+    : (BF.pdf && BF.pdf.sniff(buf, rawName)) ? 'pdf' : '';
+  if (_binFmt) {
+    const _label = _binFmt === 'epub' ? 'EPUB' : _binFmt === 'mobi' ? 'MOBI' : 'PDF';
+    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 ' + _label + '《' + name + '》…');
     try {
-      ep = await BF.epub.parse(buf);
-    } catch (eEP) {
-      BF.err.report('import.epub', eEP);
-      BF.noti.warn('《' + name + '》EPUB 解析失败：' + ((eEP && eEP.message) || eEP));
-      return { status: 'epubFail' };
-    }
-    chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
-    if (!chapters.length) {
-      BF.noti.warn('《' + name + '》EPUB 没有可读正文，已跳过');
-      return { status: 'empty' };
+      if (_binFmt === 'epub') {
+        const ep = await BF.epub.parse(buf);
+        chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+        if (!chapters.length) throw new Error('没有可读正文');
+      } else {
+        const bp = _binFmt === 'mobi' ? await BF.mobi.parse(buf) : await BF.pdf.parse(buf);
+        const bText = bp && bp.text;
+        if (!bText || !bText.trim()) throw new Error('没有可读正文');
+        const _gB = BF.library.garbleCheck(bText, '文件');
+        if (_gB.blocked) throw new Error(_gB.report);
+        if (_gB.suspect) BF.library.garbleNotice(_gB.report);
+        if (BF.app && BF.app.setImport) BF.app.setImport(30, '分章《' + name + '》…');
+        chapters = await BF.smart.chapters(bText);
+        if (!chapters.length) throw new Error('分章结果为空');
+      }
+    } catch (eBin) {
+      BF.err.report('import.' + _binFmt, eBin);
+      BF.noti.warn('《' + name + '》' + _label + ' 解析失败：' + ((eBin && eBin.message) || eBin));
+      return { status: 'parseFail' };
     }
     enc = 'utf-8';
     if (BF.app && BF.app.setImport) BF.app.setImport(35, '分章完成 · ' + chapters.length + ' 章');

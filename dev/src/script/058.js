@@ -64,17 +64,33 @@ BF.library.importURL = async function (url) {
     if (_aborted()) return _abortExit();
     BF.app.setImport(40, '正在解析...');
     const srcName = decodeURIComponent(u.pathname.split('/').pop() || '') || u.hostname;
-    /* EPUB 分流（L13）：直链 .epub / PK 魔数走容器解析，不进文本解码与乱码判据——
-       与文件通道同一条规矩：失败就如实抛错，不产出半成品书。 */
+    /* 二进制格式分流：与文件通道同一套（EPUB/MDPI/PDF），失败如实抛错 */
     let chapters = null;
     let enc = '';
-    if (BF.epub && BF.epub.sniff(buf, srcName)) {
-      BF.app.setImport(45, '解析 EPUB...');
-      let ep = null;
-      try { ep = await BF.epub.parse(buf); }
-      catch (eEP) { throw new Error('EPUB 解析失败：' + ((eEP && eEP.message) || eEP)); }
-      chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
-      if (!chapters.length) throw new Error('EPUB 没有可读正文');
+    const _uFmt = (BF.epub && BF.epub.sniff(buf, srcName)) ? 'epub'
+      : (BF.mobi && BF.mobi.sniff(buf, srcName)) ? 'mobi'
+      : (BF.pdf && BF.pdf.sniff(buf, srcName)) ? 'pdf' : '';
+    if (_uFmt) {
+      BF.app.setImport(45, '解析 ' + (_uFmt === 'epub' ? 'EPUB' : _uFmt === 'mobi' ? 'MOBI' : 'PDF') + '...');
+      try {
+        if (_uFmt === 'epub') {
+          const ep = await BF.epub.parse(buf);
+          chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+          if (!chapters.length) throw new Error('EPUB 没有可读正文');
+        } else {
+          const bp = _uFmt === 'mobi' ? await BF.mobi.parse(buf) : await BF.pdf.parse(buf);
+          const bText = bp && bp.text;
+          if (!bText || !bText.trim()) throw new Error('没有可读正文');
+          const _gU = BF.library.garbleCheck(bText, '在线内容');
+          if (_gU.blocked) throw new Error(_gU.report);
+          if (_gU.suspect) BF.library.garbleNotice(_gU.report);
+          chapters = await BF.smart.chapters(bText);
+          if (!chapters.length) throw new Error('分章结果为空');
+        }
+      } catch (eU) {
+        throw new Error((_uFmt === 'epub' ? 'EPUB' : _uFmt === 'mobi' ? 'MOBI' : 'PDF') +
+          ' 解析失败：' + ((eU && eU.message) || eU));
+      }
       enc = 'utf-8';
     } else {
       /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
@@ -96,7 +112,7 @@ BF.library.importURL = async function (url) {
       enc = dec.enc || '';
     }
     if (_aborted()) return _abortExit();
-    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(txt|epub)$/i, ''));
+    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(?:txt|epub|pdf|mobi|azw3?)$/i, ''));
     const id = BF.library.newBookId();
     const book = {
       id, title: name, size: buf.byteLength, importedAt: Date.now(),
