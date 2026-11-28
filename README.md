@@ -89,9 +89,9 @@ dev/                    开发者区（源码与工具，使用者不用管）
 
 ```bash
 md5sum 北风V0.0.1-alpha.html
-# 期望：dcfac80b76762b9092525cfab251bc1f
+# 期望：85deffde31e84b31c00fbc0a54a7f94b
 wc -lc 北风V0.0.1-alpha.html
-# 期望：48305 行 / 2902576 字节
+# 期望：48490 行 / 2914545 字节
 ```
 
 程序完整时，仓库根的 `北风V0.0.1-alpha.html` 与 `index.html` 字节完全相同；`dev/` 里的契约副本由 `selfcheck` 自动验证。

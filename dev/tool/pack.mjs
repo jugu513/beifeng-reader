@@ -27,7 +27,7 @@ const FILES = [
   'LICENSE',
 ];
 /* 官方指纹：与 README、校验文件.bat 保持一致；改成品必须三处同步（selfcheck 八份闸门会盯成品）。 */
-const EXPECT_MD5 = 'dcfac80b76762b9092525cfab251bc1f';
+const EXPECT_MD5 = '85deffde31e84b31c00fbc0a54a7f94b';
 
 const md5 = (p) => crypto.createHash('md5').update(fs.readFileSync(p)).digest('hex');
 

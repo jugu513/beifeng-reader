@@ -1865,6 +1865,26 @@ html[data-taste~="aline-glass"] .noti-card {
 .grp-new { display: flex; gap: 8px; align-items: center }
 .grp-new .input { flex: 1; min-width: 0 }
 .tag-chips .chip.is-grp { background: color-mix(in srgb, var(--accent) 18%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent) }
+/* 标签颜色（颜色编码分类）：色名与高亮八色同套，注册表在 BF.settings.tagColors */
+.tag-chips .chip[data-tc="yellow"] { background: rgba(245,212,66,0.20); border-color: rgba(245,212,66,0.55); }
+.tag-chips .chip[data-tc="green"]  { background: rgba(74,222,128,0.18); border-color: rgba(74,222,128,0.50); }
+.tag-chips .chip[data-tc="blue"]   { background: rgba(96,165,250,0.18); border-color: rgba(96,165,250,0.50); }
+.tag-chips .chip[data-tc="pink"]   { background: rgba(244,114,182,0.18); border-color: rgba(244,114,182,0.50); }
+.tag-chips .chip[data-tc="orange"] { background: rgba(251,146,60,0.18); border-color: rgba(251,146,60,0.50); }
+.tag-chips .chip[data-tc="purple"] { background: rgba(192,132,252,0.18); border-color: rgba(192,132,252,0.50); }
+.tag-chips .chip[data-tc="teal"]   { background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.50); }
+.tag-chips .chip[data-tc="slate"]  { background: rgba(148,163,184,0.22); border-color: rgba(148,163,184,0.55); }
+/* 想读徽标：与收藏/置顶同排，颜色略跳便于扫视 */
+.book-card .meta .flag.flag-wish { color: #c9a227; }
+/* 设置标签对话框（输入 + 颜色色板） */
+.tp-label { font-size: 13px; color: var(--text-dim); margin: 10px 0 8px; }
+.tp-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-input); color: var(--text); font-size: 14px; }
+.tp-input:focus { outline: none; border-color: var(--accent); }
+.tp-sw-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tp-sw { width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.tp-sw:hover { transform: scale(1.12); }
+.tp-sw.is-cur { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg-panel) inset; }
+.tp-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 /* AI 卡上的「提示词：X」入口（卡片 ↔ 提示词的对应关系摆到界面），与跳到时的一圈描边 */
 .ai-card__prompt { display: block; margin-top: 6px; font-size: 11px; color: var(--text-weak); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; text-decoration: underline dotted }
 .ai-card__prompt:hover { color: var(--text) }
@@ -12761,6 +12781,9 @@ BF.BOOK_ACTIONS = [
   { id: 'star',   label: function (b) { return b && b.starred ? '取消收藏' : '收藏'; }, onCard: true,
     ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 3 15 9.5 21.5 10.3 16.5 14.8 18 21.3 12 17.9 6 21.3 7.5 14.8 2.5 10.3 9 9.5"></polygon></svg>',
     run: function (id) { BF.app.toggleStar(id); } },
+  { id: 'wish',   label: function (b) { return b && b.wish ? '移出想读' : '加入想读'; }, onCard: false,
+    ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>',
+    run: function (id) { BF.app.toggleWish(id); } },
   { id: 'tag',    label: '设置标签',   onCard: false,
     ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.6 13.4 12 22l-9-9V4h9z"></path><circle cx="7.5" cy="8.5" r="1.2"></circle></svg>',
     run: function (id) { BF.library.tagPrompt(id); } },
@@ -13120,7 +13143,8 @@ BF.app.renderBookshelf = function (opts) {
         '<circle class="ring-fg" cx="16" cy="16" r="13" stroke-dasharray="' + (81.68 * progress / 100).toFixed(1) + ' 81.7"></circle>' +
         '</svg></span>';
       const sel = BF.appState.selectedBooks.has(b.id) ? ' checked' : '';
-      const flags = (b.starred ? '<span class="flag" title="已收藏">★ 收藏</span>' : '') +
+      const flags = (b.wish ? '<span class="flag flag-wish" title="想读">想读</span>' : '') +
+        (b.starred ? '<span class="flag" title="已收藏">★ 收藏</span>' : '') +
         (b.pinned ? '<span class="flag" title="已置顶">置顶</span>' : '');
       const t = b.title || '未命名';
       const _gids = BF.shelf.groupsOf(b.id);
@@ -13128,7 +13152,10 @@ BF.app.renderBookshelf = function (opts) {
       const chips = (b.tags && b.tags.length) || _gnames.length
         ? '<div class="tag-chips">' +
           _gnames.map(function (n) { return '<span class="chip is-grp" title="分组：' + BF.dom.escAttr(n) + '">' + BF.dom.esc(n) + '</span>'; }).join('') +
-          (b.tags || []).map(tag => '<span class="chip">' + BF.dom.esc(tag) + '</span>').join('') +
+          (b.tags || []).map(tag => {
+            const _tc = BF.library.tagColor(tag);
+            return '<span class="chip"' + (_tc ? ' data-tc="' + _tc + '"' : '') + '>' + BF.dom.esc(tag) + '</span>';
+          }).join('') +
           '</div>'
         : '';
       const _ann = annCounts[b.id] || 0;
@@ -13343,6 +13370,22 @@ BF.app.togglePin = function (id) {
     BF.app.renderBookshelf();
     if (ok === false) { BF.log && BF.log.warn('置顶写入失败，书架数据可能未更新'); return; }
     BF.noti.info(on ? '已置顶《' + title + '》' : '已取消置顶');
+  });
+};
+/* 想读（墨栖借鉴 #3）：独立布尔旗标，不参与 shelfState 进度派生——
+   想读是「还没开读的意愿」，与 new/reading/done 三态正交，互不覆盖。 */
+BF.app.toggleWish = function (id) {
+  let on = false, title = '';
+  BF.store.mutate(BF.store.K.BOOKS_META, function (arr) {
+    const b = (arr || []).find(x => x && x.id === id);
+    if (!b) return false;
+    b.wish = !b.wish;
+    on = b.wish; title = b.title || '';
+    return arr;
+  }).then(function (ok) {
+    BF.app.renderBookshelf();
+    if (ok === false) { BF.log && BF.log.warn('想读写入失败，书架数据可能未更新'); return; }
+    BF.noti.info(on ? '已加入想读《' + title + '》' : '已移出想读');
   });
 };
 /* 重命名：修正错书名，写回 meta.title（书籍 id 不变，续读/进度/标签等关联不受影响） */
@@ -16829,30 +16872,76 @@ BF.library.refreshTagFilter = function () {
   /* 重写 innerHTML 后自绘触发器还挂着旧文字：调 sync 同步（enhance 对已增强过的 select 直接早退） */
   try { BF.app.sel.sync(sel); } catch (e) { BF.err.report('sel.sync:tagFilter', e); }
 };
+/* 标签颜色（墨栖借鉴 #4 颜色编码分类）：注册表存 BF.settings.tagColors（{标签: 色名}），
+   与 hlLastColor 同一存放先例——settings 键天然进备份/导出，不新增 K 表键。
+   色名与高亮八色同一套（HL_RGB 提供实体色值），卡片色片按 data-tc 上 CSS 类。 */
+BF.library.TAG_PALETTE = ['yellow', 'green', 'blue', 'pink', 'orange', 'purple', 'teal', 'slate'];
+BF.library.tagColor = function (tag) {
+  const m = BF.settings.get('tagColors') || {};
+  return m[tag] || '';
+};
+BF.library.setTagColor = function (tag, color) {
+  const m = Object.assign({}, BF.settings.get('tagColors') || {});
+  if (color) m[tag] = color; else delete m[tag];
+  try { BF.settings.set('tagColors', m); } catch (e) { BF.err.report('tag.color', e); }
+};
 BF.library.tagPrompt = function (bookId) {
   const books = BF.store.lsGetArray(BF.store.K.BOOKS_META, []);
   const b = books.find(x => x && x.id === bookId);
   if (!b) return;
-  BF.modal.prompt('设置标签', '输入标签（多个用空格分隔）：', { value: (b.tags || []).join(' ') }).then(function (val) {
-    if (val == null) return;
-    /* R1：表单值在回调外读成局部量，回调内重新 find 改 tags。 */
-    const _tags = val.trim() ? val.trim().split(/\s+/) : [];
-    BF.store.mutate(BF.store.K.BOOKS_META, function (arr) {
-      arr = arr || [];
-      const _b = arr.find(function (x) { return x && x.id === bookId; });
-      if (!_b) return false;
-      _b.tags = _tags;
-      return arr;
-    }).then(function (ok) {
-      if (ok === false) { BF.log && BF.log.warn('标签写入失败，书可能已被删除'); BF.noti.warn('标签未保存：这本书可能已被删除，或存储空间不足'); return; }
-      BF.app.renderBookshelf(); BF.library.refreshTagFilter();
-      BF.noti.success('标签已更新');
-    }).catch(function (e) {
-      /* 用户主动输入的内容，失败必须给回执：只写 log 等于让人对着界面猜存没存 */
-      BF.err.report('book.tags', e);
-      BF.noti.warn('标签未保存：' + ((e && e.message) || '未知错误'));
+  /* 用 custom 而非 prompt：要在同一张对话框里放「标签输入 + 颜色色板」。
+     色板只对本次新建（尚无颜色）的标签生效，已有颜色的标签保持原色——
+     改一个标签的色不该顺手改掉整本书其它标签的色。 */
+  const sw = BF.library.TAG_PALETTE.map(function (c) {
+    /* 色值走渲染期 el.style 赋值（闸门⑫按源码里的 style 属性字面量计数，棘轮只许降不许升） */
+    return '<button type="button" class="tp-sw" data-tp-color="' + c + '" title="' + c + '" aria-label="颜色 ' + c + '"></button>';
+  }).join('');
+  const body =
+    '<div class="tp-label">输入标签（多个用空格分隔）</div>' +
+    '<input class="tp-input" data-tp-input value="' + BF.dom.escAttr((b.tags || []).join(' ')) + '">' +
+    '<div class="tp-label">给还没有颜色的标签选个色（已有颜色的不变）</div>' +
+    '<div class="tp-sw-row">' + sw + '</div>' +
+    '<div class="tp-btns"><button class="btn btn-sm" data-tp-cancel>取消</button>' +
+    '<button class="btn btn-sm primary" data-tp-ok>确定</button></div>';
+  BF.modal.custom('设置标签', body, function (box, dismiss) {
+    let color = '';
+    box.querySelectorAll('[data-tp-color]').forEach(function (el) {
+      el.style.background = (BF.reader.HL_RGB && BF.reader.HL_RGB[el.dataset.tpColor]) || 'rgba(245,212,66,0.85)';
+      el.onclick = function () {
+        color = el.dataset.tpColor;
+        box.querySelectorAll('[data-tp-color]').forEach(function (x) { x.classList.toggle('is-cur', x === el); });
+      };
     });
-  });
+    const _cancel = box.querySelector('[data-tp-cancel]');
+    if (_cancel) _cancel.onclick = function () { dismiss(); };
+    const _ok = box.querySelector('[data-tp-ok]');
+    const _input = box.querySelector('[data-tp-input]');
+    const _save = function () {
+      const val = _input ? _input.value : '';
+      const _tags = val.trim() ? val.trim().split(/\s+/) : [];
+      dismiss();
+      if (color) _tags.forEach(function (t) { if (!BF.library.tagColor(t)) BF.library.setTagColor(t, color); });
+      /* R1：表单值在回调外读成局部量，回调内重新 find 改 tags。 */
+      BF.store.mutate(BF.store.K.BOOKS_META, function (arr) {
+        arr = arr || [];
+        const _b = arr.find(function (x) { return x && x.id === bookId; });
+        if (!_b) return false;
+        _b.tags = _tags;
+        return arr;
+      }).then(function (ok) {
+        if (ok === false) { BF.log && BF.log.warn('标签写入失败，书可能已被删除'); BF.noti.warn('标签未保存：这本书可能已被删除，或存储空间不足'); return; }
+        BF.app.renderBookshelf(); BF.library.refreshTagFilter();
+        BF.noti.success('标签已更新');
+      }).catch(function (e) {
+        /* 用户主动输入的内容，失败必须给回执：只写 log 等于让人对着界面猜存没存 */
+        BF.err.report('book.tags', e);
+        BF.noti.warn('标签未保存：' + ((e && e.message) || '未知错误'));
+      });
+    };
+    if (_ok) _ok.onclick = _save;
+    if (_input) _input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); _save(); } });
+    if (_input) _input.focus();
+  }, function () {});
 };
 
 /* ============================================================

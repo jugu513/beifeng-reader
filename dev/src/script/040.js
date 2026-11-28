@@ -24,6 +24,9 @@ BF.BOOK_ACTIONS = [
   { id: 'star',   label: function (b) { return b && b.starred ? '取消收藏' : '收藏'; }, onCard: true,
     ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 3 15 9.5 21.5 10.3 16.5 14.8 18 21.3 12 17.9 6 21.3 7.5 14.8 2.5 10.3 9 9.5"></polygon></svg>',
     run: function (id) { BF.app.toggleStar(id); } },
+  { id: 'wish',   label: function (b) { return b && b.wish ? '移出想读' : '加入想读'; }, onCard: false,
+    ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>',
+    run: function (id) { BF.app.toggleWish(id); } },
   { id: 'tag',    label: '设置标签',   onCard: false,
     ico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.6 13.4 12 22l-9-9V4h9z"></path><circle cx="7.5" cy="8.5" r="1.2"></circle></svg>',
     run: function (id) { BF.library.tagPrompt(id); } },
@@ -383,7 +386,8 @@ BF.app.renderBookshelf = function (opts) {
         '<circle class="ring-fg" cx="16" cy="16" r="13" stroke-dasharray="' + (81.68 * progress / 100).toFixed(1) + ' 81.7"></circle>' +
         '</svg></span>';
       const sel = BF.appState.selectedBooks.has(b.id) ? ' checked' : '';
-      const flags = (b.starred ? '<span class="flag" title="已收藏">★ 收藏</span>' : '') +
+      const flags = (b.wish ? '<span class="flag flag-wish" title="想读">想读</span>' : '') +
+        (b.starred ? '<span class="flag" title="已收藏">★ 收藏</span>' : '') +
         (b.pinned ? '<span class="flag" title="已置顶">置顶</span>' : '');
       const t = b.title || '未命名';
       const _gids = BF.shelf.groupsOf(b.id);
@@ -391,7 +395,10 @@ BF.app.renderBookshelf = function (opts) {
       const chips = (b.tags && b.tags.length) || _gnames.length
         ? '<div class="tag-chips">' +
           _gnames.map(function (n) { return '<span class="chip is-grp" title="分组：' + BF.dom.escAttr(n) + '">' + BF.dom.esc(n) + '</span>'; }).join('') +
-          (b.tags || []).map(tag => '<span class="chip">' + BF.dom.esc(tag) + '</span>').join('') +
+          (b.tags || []).map(tag => {
+            const _tc = BF.library.tagColor(tag);
+            return '<span class="chip"' + (_tc ? ' data-tc="' + _tc + '"' : '') + '>' + BF.dom.esc(tag) + '</span>';
+          }).join('') +
           '</div>'
         : '';
       const _ann = annCounts[b.id] || 0;

@@ -1850,6 +1850,26 @@ html[data-taste~="aline-glass"] .noti-card {
 .grp-new { display: flex; gap: 8px; align-items: center }
 .grp-new .input { flex: 1; min-width: 0 }
 .tag-chips .chip.is-grp { background: color-mix(in srgb, var(--accent) 18%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent) }
+/* 标签颜色（颜色编码分类）：色名与高亮八色同套，注册表在 BF.settings.tagColors */
+.tag-chips .chip[data-tc="yellow"] { background: rgba(245,212,66,0.20); border-color: rgba(245,212,66,0.55); }
+.tag-chips .chip[data-tc="green"]  { background: rgba(74,222,128,0.18); border-color: rgba(74,222,128,0.50); }
+.tag-chips .chip[data-tc="blue"]   { background: rgba(96,165,250,0.18); border-color: rgba(96,165,250,0.50); }
+.tag-chips .chip[data-tc="pink"]   { background: rgba(244,114,182,0.18); border-color: rgba(244,114,182,0.50); }
+.tag-chips .chip[data-tc="orange"] { background: rgba(251,146,60,0.18); border-color: rgba(251,146,60,0.50); }
+.tag-chips .chip[data-tc="purple"] { background: rgba(192,132,252,0.18); border-color: rgba(192,132,252,0.50); }
+.tag-chips .chip[data-tc="teal"]   { background: rgba(45,212,191,0.18); border-color: rgba(45,212,191,0.50); }
+.tag-chips .chip[data-tc="slate"]  { background: rgba(148,163,184,0.22); border-color: rgba(148,163,184,0.55); }
+/* 想读徽标：与收藏/置顶同排，颜色略跳便于扫视 */
+.book-card .meta .flag.flag-wish { color: #c9a227; }
+/* 设置标签对话框（输入 + 颜色色板） */
+.tp-label { font-size: 13px; color: var(--text-dim); margin: 10px 0 8px; }
+.tp-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-input); color: var(--text); font-size: 14px; }
+.tp-input:focus { outline: none; border-color: var(--accent); }
+.tp-sw-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tp-sw { width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.tp-sw:hover { transform: scale(1.12); }
+.tp-sw.is-cur { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg-panel) inset; }
+.tp-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 /* AI 卡上的「提示词：X」入口（卡片 ↔ 提示词的对应关系摆到界面），与跳到时的一圈描边 */
 .ai-card__prompt { display: block; margin-top: 6px; font-size: 11px; color: var(--text-weak); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; text-decoration: underline dotted }
 .ai-card__prompt:hover { color: var(--text) }

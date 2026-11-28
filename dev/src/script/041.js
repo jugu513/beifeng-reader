@@ -43,6 +43,22 @@ BF.app.togglePin = function (id) {
     BF.noti.info(on ? '已置顶《' + title + '》' : '已取消置顶');
   });
 };
+/* 想读（墨栖借鉴 #3）：独立布尔旗标，不参与 shelfState 进度派生——
+   想读是「还没开读的意愿」，与 new/reading/done 三态正交，互不覆盖。 */
+BF.app.toggleWish = function (id) {
+  let on = false, title = '';
+  BF.store.mutate(BF.store.K.BOOKS_META, function (arr) {
+    const b = (arr || []).find(x => x && x.id === id);
+    if (!b) return false;
+    b.wish = !b.wish;
+    on = b.wish; title = b.title || '';
+    return arr;
+  }).then(function (ok) {
+    BF.app.renderBookshelf();
+    if (ok === false) { BF.log && BF.log.warn('想读写入失败，书架数据可能未更新'); return; }
+    BF.noti.info(on ? '已加入想读《' + title + '》' : '已移出想读');
+  });
+};
 /* 重命名：修正错书名，写回 meta.title（书籍 id 不变，续读/进度/标签等关联不受影响） */
 BF.app.renameBook = function (id) {
   const b0 = BF.store.lsGetArray(BF.store.K.BOOKS_META, []).find(x => x && x.id === id);
