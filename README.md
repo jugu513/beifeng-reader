@@ -55,11 +55,17 @@
 
 ## 界面
 
-| | |
+| 阅读器 | 书架 |
 |---|---|
-| ![阅读器](screenshots/01-reader.png) | ![工作台](screenshots/02-workbench.png) |
+| ![阅读器](screenshots/01-reader.png) | ![书架](screenshots/06-shelf.png) |
+
+| 笔记统计 | 工作台 |
+|---|---|
+| ![笔记统计](screenshots/05-notes.png) | ![工作台](screenshots/02-workbench.png) |
+
+| 设置 | 夜间模式 |
+|---|---|
 | ![设置](screenshots/03-settings.png) | ![夜间模式](screenshots/04-dark-mode.png) |
-| ![笔记统计](screenshots/05-notes.png) | ![书架](screenshots/06-shelf.png) |
 
 ## 目录结构
 
