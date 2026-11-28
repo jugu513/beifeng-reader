@@ -5492,7 +5492,7 @@ body.a-line .noti-card {
     <div class="home-right">
       <div>
         <div class="section-title">最近在读</div>
-        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import="">导入书籍</button></div></div>
+        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">还没有阅读记录。读过的书会按最近阅读排在这里<button class="btn btn-xs" data-trigger-import="">导入书籍</button></div></div>
       </div>
       <div>
         <div class="daily-quote" id="daily-quote">“读书破万卷，下笔如有神。”<div class="source">—— 杜甫</div></div>
@@ -10946,7 +10946,7 @@ BF.notesTab = (function () {
         '<div class="note-empty">' +
         '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".45"><path d="M14 8h28l12 12v36H14z"/><path d="M42 8v12h12"/><path d="M22 28h24M22 38h24M22 48h16"/></svg>' +
         '<div class="note-empty__lead">还没有标注</div>' +
-        '<div class="note-empty__hint">在阅读里划下的每一笔——划线、书签、批注——都会整齐地列在这里</div>' +
+        '<div class="note-empty__hint">划线、书签、批注都会列在这里</div>' +
         '</div>';
       return;
     }
@@ -11527,7 +11527,7 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ →</span>' +
+          '<b>还没有阅读记录</b><span>导入 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ →</span>' +
         '</div>';
 
     const quick = [
@@ -11550,7 +11550,7 @@ BF.qj = (function () {
             '<div class="qj-spine__t">' + esc(b.title || '未命名') + '</div>' +
             '<div class="qj-spine__m">' + timeAgo(b.lastRead) + '</div></div>';
         }).join('')
-      : '<div class="qj-empty qj-empty--wide">暂无阅读记录 —— 开一本书，路就走起来了</div>';
+      : '<div class="qj-empty qj-empty--wide">暂无阅读记录，打开一本书后这里会显示</div>';
 
     return '<div class="qj-jin">' +
       '<div class="qj-jin__main">' +
@@ -11655,7 +11655,7 @@ BF.qj = (function () {
         '<span class="qj-tbrow__t">' + esc(x.title) + '</span>' +
         '<span class="qj-tbrow__m">' + x.min + ' 分钟</span>' +
         '<span class="qj-tbrow__bar"><i data-w="' + Math.max(3, Math.round(x.min / topMax * 100)) + '"></i></span></div>';
-    }).join('') : '<div class="qj-empty">还没有按书计的时长 —— 去读几页，足迹自会落笔</div>';
+    }).join('') : '<div class="qj-empty">还没有按书统计的阅读时长</div>';
 
     return stnHTML('ji') +
       '<div class="qj-nums">' +
@@ -12029,7 +12029,7 @@ BF.app.renderHome = function () {
   const rc = document.getElementById('recent-scroll');
   if (rc) {
     if (!recent.length) {
-      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。挑一本书翻开第一页，这里就会记住你<button class="btn btn-xs" data-trigger-import>导入书籍</button></div>';
+      rc.innerHTML = '<div class="recent-empty">还没有阅读记录。读过的书会按最近阅读排在这里<button class="btn btn-xs" data-trigger-import>导入书籍</button></div>';
     } else {
       rc.innerHTML = recent.map(BF.app.recentCardHTML).join('');
     }
@@ -13074,7 +13074,7 @@ BF.app.renderBookshelf = function (opts) {
     if (sq && filters.length) { head = '没有同时满足条件的书'; sub = '筛选：' + filters.join('、') + ' · 关键词：' + BF.dom.esc(shown); clearWhat = 'both'; }
     else if (filters.length) { head = '这个筛选下没有书'; sub = '当前筛选：' + filters.join('、'); clearWhat = 'filter'; }
     else if (sq) { head = '没有匹配「' + BF.dom.esc(shown) + '」的书'; sub = '书名整段包含才算命中，换个关键词或清掉搜索'; clearWhat = 'search'; }
-    else { head = '书架还空着，等第一位住客'; sub = '把 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ 拖进来，或点右下角的 + 导入'; }
+    else { head = '书架还空着'; sub = '把 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ 拖进来，或点右下角的 + 导入'; }
     grid.innerHTML = addCard +
       '<div class="empty-state"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
       '<p>' + head + '</p><div class="sub">' + sub + '</div>' +
@@ -17330,7 +17330,7 @@ BF.reader.loadChapter = async function (noFade) {
       rm.innerHTML = '<h2>' + BF.dom.esc(BF.reader.state.title) + '</h2>' + _meta +
         '<div class="rd-blank" role="status">' +
         '<div class="rd-blank__icon" aria-hidden="true">◇</div>' +
-        '<p class="rd-blank__msg">这一图片读取失败</p>' +
+        '<p class="rd-blank__msg">这张图片读取失败</p>' +
         '<p class="rd-blank__hint">可尝试重新导入这本书。</p>' +
         '</div>';
     }
@@ -20146,7 +20146,7 @@ BF.reader.renderNotes = function (c) {
   const head = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
     '<button class="btn btn-xs" data-open-notes style="flex:1;justify-content:flex-start">' + BF.dom.ic('md') + ' 打开便签编辑器</button>' +
     '</div>';
-  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。选中喜欢的句子，让它亮起来</div>'; return; }
+  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。阅读时选中句子点「划线」</div>'; return; }
   c.innerHTML = head + '<div style="display:flex;flex-direction:column;gap:4px">' +
     notes.map(function (n) {
       const _ch = BF.dom.intAttr(n.chapterIdx), _off = BF.dom.intAttr(n.charOffset);
@@ -21654,7 +21654,7 @@ BF.reader.addVocab = function () {
 };
 BF.reader.renderVocab = function (c) {
   const all = (BF.store.lsGetMemo(BF.store.K.VOCAB, []) || []).filter(x => x.bookId === BF.appState.currentBookId);
-  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本在等第一个词。选中文字点「生词」，它就跟你走了</div>'; return; }
+  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」即可收藏</div>'; return; }
   /* 生词记忆辅助：
      三档筛选（全部 / 只复习不认识 / 已掌握隐藏）+ 掌握状态（known/unknown/mastered）+ 复习可朗读。
      数据向后兼容：旧条目无 status 字段视为 unknown（未掌握）。 */
@@ -21732,7 +21732,7 @@ BF.reader.renderVocab = function (c) {
           BF.act.run('删除生词', function () {
             BF.store.lsSet(BF.store.K.VOCAB, BF.store.lsGetArray(BF.store.K.VOCAB, []).filter(function (x) { return !(x.bookId === v.bookId && x.word === v.word); }));
             all.splice(all.indexOf(v), 1);
-            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」，第一个词就归你了</div>'; return; }
+            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」收藏</div>'; return; }
             _idx = _idx % list.length;
             render();
           }, {
@@ -21840,7 +21840,7 @@ BF.reader.renderMarks = function (c) {
     '<span>书签 <b style="color:var(--accent-ink)">' + bms.length + '</b></span>' +
     '<span>生词 <b style="color:var(--accent-ink)">' + vocs.length + '</b></span>' +
     '<span>便签 <b style="color:var(--accent-ink)">' + notes.length + '</b></span></div>';
-  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">这本书还没留下痕迹。选中文字划线或收进生词本，读过的证据会攒在这里</div>'; return; }
+  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">本书还没有标注。选中文字划线或收进生词本，会列在这里</div>'; return; }
   /* 聚合时间线（按 created 倒序） */
   const items = [];
   hls.forEach(function (h) { items.push({ t: h.created || 0, type: '划线', text: h.text || '', note: h.note || '', ch: h.chapterIdx, off: h.charOffset, id: h.id, kind: 'hl', loc: h.loc || null }); });
@@ -31479,7 +31479,7 @@ BF.annAcross = (function () {
     items.forEach(function (it, i) { _idxOf.set(it, i); });
     let listHtml;
     if (!items.length) {
-      listHtml = '<div class="cmdk-empty">还没有一条标注。阅读时划下的句子，会在这里聚成你的书摘</div>';
+      listHtml = '<div class="cmdk-empty">还没有一条标注。阅读时划线、书签的句子会列在这里</div>';
     } else if (!_shown.length) {
       /* 空态区分：全库有标注但当前标签过滤命中 0 条 —— 与上面「全库无标注」不同，
          文案要点明是过滤造成的，并提示怎么回去，避免用户以为标注丢了。 */
@@ -47011,7 +47011,7 @@ BF.enh.v4 = (function () {
          分两种实话：架上有书但没读过 / 连书都没有。 */
       const hasAny = (store().lsGet(store().K.BOOKS_META, []) || []).length > 0;
       btn.textContent = hasAny ? '还没有阅读记录' : '先导入一本书';
-      btn.title = hasAny ? '从书架点开一本书开始读，之后这里会接着上次的位置' : '导入一本 TXT 之后，这里会变成「继续上次」';
+      btn.title = hasAny ? '从书架点开一本书开始读，之后这里会接着上次的位置' : '导入一本书之后，这里会变成「继续上次」';
     }
   }
 

@@ -89,9 +89,9 @@ dev/                    开发者区（源码与工具，使用者不用管）
 
 ```bash
 md5sum 北风V0.0.1-alpha.html
-# 期望：eb3ce435c6e724d117db56ca5f1ce369
+# 期望：509494caec6bc25398a6a80bdf3a0a07
 wc -lc 北风V0.0.1-alpha.html
-# 期望：49736 行 / 2973987 字节
+# 期望：49736 行 / 2973762 字节
 ```
 
 程序完整时，仓库根的 `北风V0.0.1-alpha.html` 与 `index.html` 字节完全相同；`dev/` 里的契约副本由 `selfcheck` 自动验证。
@@ -114,7 +114,7 @@ node dev/tool/build.mjs      # src/ → 母本
 node dev/tool/deploy.mjs     # 母本 → 其余七份（含仓库根发布两份）
 ```
 
-`dev/tool/` 里是一套只读检查和验收脚本。常用的是 `node dev/tool/selfcheck.mjs`：它会从 `dev/src/` 重新构建母本，检查八份文件字节一致，跑 19 道结构闸门和 266 条行为回归，最后给出能不能交付的结论。日常快速自查用 `node dev/tool/selfcheck.mjs --quick`。细节见 [dev/tool/README.md](dev/tool/README.md)，架构见 [dev/docs/ARCHITECTURE.md](dev/docs/ARCHITECTURE.md)。
+`dev/tool/` 里是一套只读检查和验收脚本。常用的是 `node dev/tool/selfcheck.mjs`：它会从 `dev/src/` 重新构建母本，检查八份文件字节一致，跑 19 道结构闸门和 392 条行为回归，最后给出能不能交付的结论。日常快速自查用 `node dev/tool/selfcheck.mjs --quick`。细节见 [dev/tool/README.md](dev/tool/README.md)，架构见 [dev/docs/ARCHITECTURE.md](dev/docs/ARCHITECTURE.md)。
 
 本地预览服务（开发者用）：`node dev/tool/serve.mjs 8791`。
 

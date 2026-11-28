@@ -40,7 +40,7 @@ BF.notesTab = (function () {
         '<div class="note-empty">' +
         '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".45"><path d="M14 8h28l12 12v36H14z"/><path d="M42 8v12h12"/><path d="M22 28h24M22 38h24M22 48h16"/></svg>' +
         '<div class="note-empty__lead">还没有标注</div>' +
-        '<div class="note-empty__hint">在阅读里划下的每一笔——划线、书签、批注——都会整齐地列在这里</div>' +
+        '<div class="note-empty__hint">划线、书签、批注都会列在这里</div>' +
         '</div>';
       return;
     }

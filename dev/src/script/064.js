@@ -189,7 +189,7 @@ BF.reader.loadChapter = async function (noFade) {
       rm.innerHTML = '<h2>' + BF.dom.esc(BF.reader.state.title) + '</h2>' + _meta +
         '<div class="rd-blank" role="status">' +
         '<div class="rd-blank__icon" aria-hidden="true">◇</div>' +
-        '<p class="rd-blank__msg">这一图片读取失败</p>' +
+        '<p class="rd-blank__msg">这张图片读取失败</p>' +
         '<p class="rd-blank__hint">可尝试重新导入这本书。</p>' +
         '</div>';
     }

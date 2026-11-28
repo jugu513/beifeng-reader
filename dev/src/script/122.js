@@ -943,7 +943,7 @@ BF.annAcross = (function () {
     items.forEach(function (it, i) { _idxOf.set(it, i); });
     let listHtml;
     if (!items.length) {
-      listHtml = '<div class="cmdk-empty">还没有一条标注。阅读时划下的句子，会在这里聚成你的书摘</div>';
+      listHtml = '<div class="cmdk-empty">还没有一条标注。阅读时划线、书签的句子会列在这里</div>';
     } else if (!_shown.length) {
       /* 空态区分：全库有标注但当前标签过滤命中 0 条 —— 与上面「全库无标注」不同，
          文案要点明是过滤造成的，并提示怎么回去，避免用户以为标注丢了。 */

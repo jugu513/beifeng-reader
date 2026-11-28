@@ -663,7 +663,7 @@ BF.reader.renderNotes = function (c) {
   const head = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
     '<button class="btn btn-xs" data-open-notes style="flex:1;justify-content:flex-start">' + BF.dom.ic('md') + ' 打开便签编辑器</button>' +
     '</div>';
-  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。选中喜欢的句子，让它亮起来</div>'; return; }
+  if (!notes.length) { c.innerHTML = head + '<div class="cmdk-empty">还没有一条划线。阅读时选中句子点「划线」</div>'; return; }
   c.innerHTML = head + '<div style="display:flex;flex-direction:column;gap:4px">' +
     notes.map(function (n) {
       const _ch = BF.dom.intAttr(n.chapterIdx), _off = BF.dom.intAttr(n.charOffset);

@@ -344,7 +344,7 @@ BF.enh.v4 = (function () {
          分两种实话：架上有书但没读过 / 连书都没有。 */
       const hasAny = (store().lsGet(store().K.BOOKS_META, []) || []).length > 0;
       btn.textContent = hasAny ? '还没有阅读记录' : '先导入一本书';
-      btn.title = hasAny ? '从书架点开一本书开始读，之后这里会接着上次的位置' : '导入一本 TXT 之后，这里会变成「继续上次」';
+      btn.title = hasAny ? '从书架点开一本书开始读，之后这里会接着上次的位置' : '导入一本书之后，这里会变成「继续上次」';
     }
   }
 

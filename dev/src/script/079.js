@@ -447,7 +447,7 @@ BF.reader.addVocab = function () {
 };
 BF.reader.renderVocab = function (c) {
   const all = (BF.store.lsGetMemo(BF.store.K.VOCAB, []) || []).filter(x => x.bookId === BF.appState.currentBookId);
-  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本在等第一个词。选中文字点「生词」，它就跟你走了</div>'; return; }
+  if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」即可收藏</div>'; return; }
   /* 生词记忆辅助：
      三档筛选（全部 / 只复习不认识 / 已掌握隐藏）+ 掌握状态（known/unknown/mastered）+ 复习可朗读。
      数据向后兼容：旧条目无 status 字段视为 unknown（未掌握）。 */
@@ -525,7 +525,7 @@ BF.reader.renderVocab = function (c) {
           BF.act.run('删除生词', function () {
             BF.store.lsSet(BF.store.K.VOCAB, BF.store.lsGetArray(BF.store.K.VOCAB, []).filter(function (x) { return !(x.bookId === v.bookId && x.word === v.word); }));
             all.splice(all.indexOf(v), 1);
-            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」，第一个词就归你了</div>'; return; }
+            if (!all.length) { c.innerHTML = '<div class="cmdk-empty">生词本还空着。选中文字点「生词」收藏</div>'; return; }
             _idx = _idx % list.length;
             render();
           }, {
@@ -633,7 +633,7 @@ BF.reader.renderMarks = function (c) {
     '<span>书签 <b style="color:var(--accent-ink)">' + bms.length + '</b></span>' +
     '<span>生词 <b style="color:var(--accent-ink)">' + vocs.length + '</b></span>' +
     '<span>便签 <b style="color:var(--accent-ink)">' + notes.length + '</b></span></div>';
-  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">这本书还没留下痕迹。选中文字划线或收进生词本，读过的证据会攒在这里</div>'; return; }
+  if (!total) { c.innerHTML = stat + '<div class="cmdk-empty">本书还没有标注。选中文字划线或收进生词本，会列在这里</div>'; return; }
   /* 聚合时间线（按 created 倒序） */
   const items = [];
   hls.forEach(function (h) { items.push({ t: h.created || 0, type: '划线', text: h.text || '', note: h.note || '', ch: h.chapterIdx, off: h.charOffset, id: h.id, kind: 'hl', loc: h.loc || null }); });

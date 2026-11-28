@@ -91,7 +91,7 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>书架在等你翻开第一页</b><span>挑一本，或导入 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ →</span>' +
+          '<b>还没有阅读记录</b><span>导入 TXT/EPUB/PDF/MOBI/DOCX/HTML/FB2/MD/CBZ →</span>' +
         '</div>';
 
     const quick = [
@@ -114,7 +114,7 @@ BF.qj = (function () {
             '<div class="qj-spine__t">' + esc(b.title || '未命名') + '</div>' +
             '<div class="qj-spine__m">' + timeAgo(b.lastRead) + '</div></div>';
         }).join('')
-      : '<div class="qj-empty qj-empty--wide">暂无阅读记录 —— 开一本书，路就走起来了</div>';
+      : '<div class="qj-empty qj-empty--wide">暂无阅读记录，打开一本书后这里会显示</div>';
 
     return '<div class="qj-jin">' +
       '<div class="qj-jin__main">' +
@@ -219,7 +219,7 @@ BF.qj = (function () {
         '<span class="qj-tbrow__t">' + esc(x.title) + '</span>' +
         '<span class="qj-tbrow__m">' + x.min + ' 分钟</span>' +
         '<span class="qj-tbrow__bar"><i data-w="' + Math.max(3, Math.round(x.min / topMax * 100)) + '"></i></span></div>';
-    }).join('') : '<div class="qj-empty">还没有按书计的时长 —— 去读几页，足迹自会落笔</div>';
+    }).join('') : '<div class="qj-empty">还没有按书统计的阅读时长</div>';
 
     return stnHTML('ji') +
       '<div class="qj-nums">' +
