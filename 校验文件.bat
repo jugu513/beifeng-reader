@@ -3,7 +3,7 @@ chcp 65001 >nul
 title 北风 · 校验文件完整性
 cd /d "%~dp0"
 rem 官方指纹（与 README 中的 md5 一致），程序更新后需同步更新。
-set EXPECT=8e5d5d98c6d6c6297f396d9798ac59ab
+set EXPECT=dcfac80b76762b9092525cfab251bc1f
 set BAD=0
 call :check "北风V0.0.1-alpha.html"
 call :check "index.html"

@@ -1,1104 +1,1110 @@
 {
-  "generated": "2026-11-23",
-  "note": "方案B 2b 逻辑分层清单：段按物理顺序（不改字节），四层 core/domain/ui/boot。layer-gate.mjs 审计完整性/一致性。",
-  "layers": {
-    "core": "基础设施与中枢：总线/存储/设置/状态/容器/导航等",
-    "domain": "数据与业务：导入/分章/搜索/备份/自愈/Worker/数据资产",
-    "ui": "界面与交互：书架/阅读器/面板/命令/扩展/通知/外观",
-    "boot": "启动与注册：模块注册/启动编排/注册引导"
+ "generated": "2026-11-23",
+ "note": "方案B 2b 逻辑分层清单：段按物理顺序（不改字节），四层 core/domain/ui/boot。layer-gate.mjs 审计完整性/一致性。",
+ "layers": {
+  "core": "基础设施与中枢：总线/存储/设置/状态/容器/导航等",
+  "domain": "数据与业务：导入/分章/搜索/备份/自愈/Worker/数据资产",
+  "ui": "界面与交互：书架/阅读器/面板/命令/扩展/通知/外观",
+  "boot": "启动与注册：模块注册/启动编排/注册引导"
+ },
+ "dist": {
+  "core": 32,
+  "domain": 62,
+  "boot": 24,
+  "ui": 64
+ },
+ "segments": [
+  {
+   "n": "000",
+   "layer": "core",
+   "basis": "inherit",
+   "title": "(无标题)"
   },
-  "dist": {
-    "core": 32,
-    "domain": 61,
-    "boot": 24,
-    "ui": 64
+  {
+   "n": "001",
+   "layer": "core",
+   "basis": "def:EVENTS",
+   "title": "0. 版本与常量"
   },
-  "segments": [
-    {
-      "n": "000",
-      "layer": "core",
-      "basis": "inherit",
-      "title": "(无标题)"
-    },
-    {
-      "n": "001",
-      "layer": "core",
-      "basis": "def:EVENTS",
-      "title": "0. 版本与常量"
-    },
-    {
-      "n": "002",
-      "layer": "core",
-      "basis": "def:CONFIG",
-      "title": "全局可调常量（唯一实现）"
-    },
-    {
-      "n": "003",
-      "layer": "core",
-      "basis": "def:bus",
-      "title": "1. BF.bus 事件总线（副中枢）"
-    },
-    {
-      "n": "004",
-      "layer": "core",
-      "basis": "def:sync",
-      "title": "2b. BF.sync 跨标签页同步（数据面，仅广播 kind）"
-    },
-    {
-      "n": "005",
-      "layer": "core",
-      "basis": "def:log",
-      "title": "2. BF.log 日志门面"
-    },
-    {
-      "n": "006",
-      "layer": "core",
-      "basis": "def:err",
-      "title": "3. BF.err 错误边界 + 看门狗"
-    },
-    {
-      "n": "007",
-      "layer": "core",
-      "basis": "def:timers",
-      "title": "4. BF.timers 定时器管理器"
-    },
-    {
-      "n": "008",
-      "layer": "core",
-      "basis": "def:jobs",
-      "title": "4b. BF.jobs 任务注册表（进程中心）"
-    },
-    {
-      "n": "009",
-      "layer": "core",
-      "basis": "def:trace",
-      "title": "4c. BF.trace 启动时序"
-    },
-    {
-      "n": "010",
-      "layer": "core",
-      "basis": "def:caps",
-      "title": "4d. BF.caps 能力检测"
-    },
-    {
-      "n": "011",
-      "layer": "core",
-      "basis": "def:fsync",
-      "title": "4e. BF.fsync · OPFS 文件系统抽象"
-    },
-    {
-      "n": "012",
-      "layer": "core",
-      "basis": "def:snap",
-      "title": "4f. BF.snap · 快照层（OPFS，独立逻辑分区）"
-    },
-    {
-      "n": "013",
-      "layer": "core",
-      "basis": "def:store",
-      "title": "5. BF.store 存储门面"
-    },
-    {
-      "n": "014",
-      "layer": "core",
-      "basis": "inherit",
-      "title": "写入健康计数（可靠性三档·第③档）"
-    },
-    {
-      "n": "015",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "腾退阶梯（可靠性三档·第①档）"
-    },
-    {
-      "n": "016",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "P4b 腾退「搬迁档」（先搬后删，R-10）"
-    },
-    {
-      "n": "017",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "读改写原子化：消除 books_meta 等键的「读→改→写」竞争"
-    },
-    {
-      "n": "018",
-      "layer": "core",
-      "basis": "def:state",
-      "title": "6. BF.state 状态机"
-    },
-    {
-      "n": "019",
-      "layer": "core",
-      "basis": "def:sheet,v3Scrim",
-      "title": "7. BF.sheet 容器基类"
-    },
-    {
-      "n": "020",
-      "layer": "boot",
-      "basis": "def:modules",
-      "title": "8. BF.modules 模块注册表"
-    },
-    {
-      "n": "021",
-      "layer": "core",
-      "basis": "def:commands",
-      "title": "9. BF.commands 命令系统"
-    },
-    {
-      "n": "022",
-      "layer": "core",
-      "basis": "inherit",
-      "title": "10. 全局事件委托"
-    },
-    {
-      "n": "023",
-      "layer": "core",
-      "basis": "def:prefs",
-      "title": "11b. BF.prefs 随书偏好"
-    },
-    {
-      "n": "024",
-      "layer": "core",
-      "basis": "def:settings",
-      "title": "11. BF.settings 设置门面"
-    },
-    {
-      "n": "025",
-      "layer": "core",
-      "basis": "def:dom",
-      "title": "12. BF.dom 工具"
-    },
-    {
-      "n": "026",
-      "layer": "core",
-      "basis": "def:appState,app",
-      "title": "13. 应用状态 + 导航"
-    },
-    {
-      "n": "027",
-      "layer": "core",
-      "basis": "def:shell",
-      "title": "13.5 BF.shell 全局骨架（TabBar + 右抽屉）"
-    },
-    {
-      "n": "028",
-      "layer": "ui",
-      "basis": "def:notesTab",
-      "title": "13.5b 笔记 Tab 聚合渲染"
-    },
-    {
-      "n": "029",
-      "layer": "ui",
-      "basis": "def:mineTab",
-      "title": "13.5c 我的 Tab 渲染"
-    },
-    {
-      "n": "030",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "13.6 外观登记表（单入口，主题 ∪ 模式合并）"
-    },
-    {
-      "n": "031",
-      "layer": "ui",
-      "basis": "def:YEHANG_TOKENS,SKIN_TOKENS,skin",
-      "title": "实验色板：夜航"
-    },
-    {
-      "n": "032",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "14. 外观应用（BF.theme 为兼容面）"
-    },
-    {
-      "n": "033",
-      "layer": "ui",
-      "basis": "def:BW_LIGHT_TOKENS,theme",
-      "title": "黑白简约模式（实验 · bwMode）灰度令牌"
-    },
-    {
-      "n": "034",
-      "layer": "ui",
-      "basis": "def:qj",
-      "title": "14b. 曲径（实验界面 · qjMode）：多驿站式接管界面"
-    },
-    {
-      "n": "035",
-      "layer": "core",
-      "basis": "def:util",
-      "title": "15. 首页"
-    },
-    {
-      "n": "036",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "16. 书架"
-    },
-    {
-      "n": "037",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "骨架屏 API"
-    },
-    {
-      "n": "038",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "自绘下拉"
-    },
-    {
-      "n": "039",
-      "layer": "domain",
-      "basis": "def:shelf",
-      "title": "G1. 书架分组（Collection）"
-    },
-    {
-      "n": "040",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "书卡动作登记表"
-    },
-    {
-      "n": "041",
-      "layer": "core",
-      "basis": "def:trash",
-      "title": "17. 书架辅助动作"
-    },
-    {
-      "n": "042",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "18. 阅读器路由（转发到 BF.reader 域）"
-    },
-    {
-      "n": "043",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L1. 编码探测"
-    },
-    {
-      "n": "044",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L2. 分章规则"
-    },
-    {
-      "n": "045",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "正文层字节级快照 / 复原"
-    },
-    {
-      "n": "046",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "L3. 文件名清洗"
-    },
-    {
-      "n": "047",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "L4. 导入主流程"
-    },
-    {
-      "n": "048",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "把轻量阅读进度（bf_reading_state）合并进 books_meta 数组供渲染"
-    },
-    {
-      "n": "049",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L1. 读取章节文本"
-    },
-    {
-      "n": "050",
-      "layer": "core",
-      "basis": "def:lz",
-      "title": "压缩（真 gzip 优先，base64 兜底；异步 API）"
-    },
-    {
-      "n": "051",
-      "layer": "core",
-      "basis": "inherit",
-      "title": "SVG 图标库（BF.ui.ic）：全站图标统一用内联 SVG，替换 emoji"
-    },
-    {
-      "n": "052",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L6b. 章节入库（三处导入通道共用）"
-    },
-    {
-      "n": "053",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L7. 下载"
-    },
-    {
-      "n": "054",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L5b. 统一另存为（导出端 FSA 优先，降级 <a download>）"
-    },
-    {
-      "n": "055",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L8. 导入进度 UI"
-    },
-    {
-      "n": "056",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "L9. 拖拽导入（只有样式无事件，北风补真实现）"
-    },
-    {
-      "n": "057",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L10. 剪贴板导入"
-    },
-    {
-      "n": "058",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "L11. URL 导入"
-    },
-    {
-      "n": "059",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "L12b. 跨书正文搜索"
-    },
-    {
-      "n": "060",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "搜索的共用骨架（书内 searchAll 与跨书 searchAcrossBooks 同一份实现"
-    },
-    {
-      "n": "061",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "L12. 标签系统"
-    },
-    {
-      "n": "062",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "阅读器状态"
-    },
-    {
-      "n": "063",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "R2. 打开书籍"
-    },
-    {
-      "n": "064",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "R3. 三路径渲染"
-    },
-    {
-      "n": "065",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "R4. 排版应用"
-    },
-    {
-      "n": "066",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "R5. 进度"
-    },
-    {
-      "n": "067",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "本书回顾卡（C4/FS-6）：末章读完的成果物"
-    },
-    {
-      "n": "068",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "R6. 导航"
-    },
-    {
-      "n": "069",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "微读模式：独立实现（R3/R4）"
-    },
-    {
-      "n": "070",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "微读浮层统一工厂 + 排版/目录/进度/自动隐藏"
-    },
-    {
-      "n": "071",
-      "layer": "core",
-      "basis": "def:nav",
-      "title": "导航历史（前进/后退阅读位置）"
-    },
-    {
-      "n": "072",
-      "layer": "core",
-      "basis": "inherit",
-      "title": "R7. 分页模式"
-    },
-    {
-      "n": "073",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "R8. 章节预取"
-    },
-    {
-      "n": "074",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "R9. 续读提示"
-    },
-    {
-      "n": "075",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "R10. 抽屉（目录/搜索/书签/笔记/生词/标注 6 tab）"
-    },
-    {
-      "n": "076",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "标注：高亮 / 批注 / 书签 / 生词"
-    },
-    {
-      "n": "077",
-      "layer": "core",
-      "basis": "def:cfi",
-      "title": "BF.cfi 轻量定位层（偏移唯一实现）"
-    },
-    {
-      "n": "078",
-      "layer": "domain",
-      "basis": "def:ann",
-      "title": "W3C Web Annotation 标注层（BF.ann，C5）"
-    },
-    {
-      "n": "079",
-      "layer": "domain",
-      "basis": "def:hlc",
-      "title": "R11.0b BF.hlc 轻量时钟"
-    },
-    {
-      "n": "080",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "R12. 选中工具条"
-    },
-    {
-      "n": "081",
-      "layer": "domain",
-      "basis": "def:findInPage",
-      "title": "R13. 查找（章内 Ctrl+F）"
-    },
-    {
-      "n": "082",
-      "layer": "core",
-      "basis": "def:stats",
-      "title": "R14. 阅读统计埋点"
-    },
-    {
-      "n": "083",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "R15. 模块注册"
-    },
-    {
-      "n": "084",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "T1. 状态"
-    },
-    {
-      "n": "085",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "T2. 浏览器离线引擎"
-    },
-    {
-      "n": "086",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "多音字手动纠正"
-    },
-    {
-      "n": "087",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "读法规范化"
-    },
-    {
-      "n": "088",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T3. MiMo 引擎"
-    },
-    {
-      "n": "089",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T4. Edge 引擎（wss）"
-    },
-    {
-      "n": "090",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T12. 在线语音静默自检"
-    },
-    {
-      "n": "091",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "朗读稳定性核心"
-    },
-    {
-      "n": "092",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "17.0 引擎能力自述表（唯一一份）"
-    },
-    {
-      "n": "093",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T5. 路由"
-    },
-    {
-      "n": "094",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T6. 主朗读流程"
-    },
-    {
-      "n": "095",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T7. 在线引擎播放"
-    },
-    {
-      "n": "096",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "T8. 预合成缓存"
-    },
-    {
-      "n": "097",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "T8b. 跨会话朗读缓存（可选，默认关）"
-    },
-    {
-      "n": "098",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "T9. 控制"
-    },
-    {
-      "n": "099",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "T10. UI"
-    },
-    {
-      "n": "100",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "T11. 保活"
-    },
-    {
-      "n": "101",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "T12. 设置联动"
-    },
-    {
-      "n": "102",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "T13. 选区朗读"
-    },
-    {
-      "n": "103",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "T14. 初始化"
-    },
-    {
-      "n": "104",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "T15. 模块注册"
-    },
-    {
-      "n": "105",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "A1. Provider 列表"
-    },
-    {
-      "n": "106",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "结构化返回（tools 优先 → json_object → 纯文本兜底）"
-    },
-    {
-      "n": "107",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "A1b. 网络可达性与传输路由"
-    },
-    {
-      "n": "108",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "A1c. 本机转发器源码（页面里永不执行，只用于导出）"
-    },
-    {
-      "n": "109",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "北风工程模式（终端 beifeng666）"
-    },
-    {
-      "n": "110",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "A2. 网关：并发 + 熔断 + 重试 + 超时 + SSE"
-    },
-    {
-      "n": "111",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "A3. AI 密钥存储 + 启动锁（PIN）"
-    },
-    {
-      "n": "112",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "A4. 摘要缓存（LRU）"
-    },
-    {
-      "n": "113",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "A5. 研读 8 卡"
-    },
-    {
-      "n": "114",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "AI 智能路由层"
-    },
-    {
-      "n": "115",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "A6. 卡片执行"
-    },
-    {
-      "n": "116",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "A7. Agent 工具集（覆盖用户可操作能力域）+ Agent"
-    },
-    {
-      "n": "117",
-      "layer": "boot",
-      "basis": "inherit",
-      "title": "A8. 问书历史（最近 12 条）"
-    },
-    {
-      "n": "118",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "A8c. 多会话"
-    },
-    {
-      "n": "119",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "A8b. 问书对话导出"
-    },
-    {
-      "n": "120",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "C11 余量项：标注 Obsidian 回链导出"
-    },
-    {
-      "n": "121",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "A8b. 模型价格表与成本估算（#151）"
-    },
-    {
-      "n": "122",
-      "layer": "domain",
-      "basis": "inherit",
-      "title": "A9. 防剧透"
-    },
-    {
-      "n": "123",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "番茄钟"
-    },
-    {
-      "n": "124",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "环境背景动画"
-    },
-    {
-      "n": "125",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "白噪音"
-    },
-    {
-      "n": "126",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "阅读目标"
-    },
-    {
-      "n": "127",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "统计面板"
-    },
-    {
-      "n": "128",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "通知中心"
-    },
-    {
-      "n": "129",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "DSL 终端"
-    },
-    {
-      "n": "130",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "DSL 终端（终端式工作台）"
-    },
-    {
-      "n": "131",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "工具面板委托"
-    },
-    {
-      "n": "132",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "命令注册"
-    },
-    {
-      "n": "133",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "分区注册表"
-    },
-    {
-      "n": "134",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "场景预设"
-    },
-    {
-      "n": "135",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "扩展中心（pluginCenter）：设置页「插件」节"
-    },
-    {
-      "n": "136",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "分区实现"
-    },
-    {
-      "n": "137",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "语音分区的折叠 / 引擎联动（从分支合并，不改动其它分区）"
-    },
-    {
-      "n": "138",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "AI 预设操作"
-    },
-    {
-      "n": "139",
-      "layer": "ui",
-      "basis": "inherit",
-      "title": "快捷键自定义（重绑热键，存 hk_custom）"
-    },
-    {
-      "n": "140",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "版本快照（日志只描述能力现状，不记过程）"
-    },
-    {
-      "n": "141",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "设置面板委托"
-    },
-    {
-      "n": "142",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "D1. 备份系统"
-    },
-    {
-      "n": "143",
-      "layer": "domain",
-      "basis": "def:smart",
-      "title": "BF.smart 章节 / AI 路由层"
-    },
-    {
-      "n": "144",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "Worker 线程池（大文件分章离线计算）"
-    },
-    {
-      "n": "145",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "D2. 数据自愈"
-    },
-    {
-      "n": "146",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "运维台"
-    },
-    {
-      "n": "147",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "章节截图（canvas 生成卡片图）"
-    },
-    {
-      "n": "148",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "笔记导出 CSV / MD"
-    },
-    {
-      "n": "149",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "ZIP 打包器（无依赖，store 不压缩）"
-    },
-    {
-      "n": "150",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "导出全部书籍（TXT 逐个 / ZIP 打包）"
-    },
-    {
-      "n": "151",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "自包含包导出"
-    },
-    {
-      "n": "152",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "24b. 顶栏常驻状态"
-    },
-    {
-      "n": "153",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "自动滚动"
-    },
-    {
-      "n": "154",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "阅读器缩放（字号步进唯一实现）"
-    },
-    {
-      "n": "155",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "书籍信息弹窗（可编辑元数据）"
-    },
-    {
-      "n": "156",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "WK. 工坊（workshop）：文本制作书籍"
-    },
-    {
-      "n": "157",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "独立便签编辑器"
-    },
-    {
-      "n": "158",
-      "layer": "domain",
-      "basis": "def:base",
-      "title": "BB. 基地（base）：数据资产管理"
-    },
-    {
-      "n": "159",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "跨标签页同步"
-    },
-    {
-      "n": "160",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "OPFS 快照（不可用时降级）"
-    },
-    {
-      "n": "161",
-      "layer": "domain",
-      "basis": "kw",
-      "title": "工作区同步"
-    },
-    {
-      "n": "162",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "委托绑定（新增功能入口）"
-    },
-    {
-      "n": "163",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "通用更多菜单（带箭头，首页/书架/阅读器共用）"
-    },
-    {
-      "n": "164",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "快捷键补充（延至启动时绑定）"
-    },
-    {
-      "n": "165",
-      "layer": "ui",
-      "basis": "def:noti",
-      "title": "18. BF.noti 通知系统"
-    },
-    {
-      "n": "166",
-      "layer": "ui",
-      "basis": "def:feedback",
-      "title": "18b. BF.feedback 统一反馈"
-    },
-    {
-      "n": "167",
-      "layer": "ui",
-      "basis": "def:act",
-      "title": "18.5 BF.act 用户动作统一包装"
-    },
-    {
-      "n": "168",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "19. BF.ui 基础"
-    },
-    {
-      "n": "169",
-      "layer": "ui",
-      "basis": "def:modal,ask",
-      "title": "20. BF.modal Promise 模态框"
-    },
-    {
-      "n": "170",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "PIN 门禁（启动锁 / 敏感操作锁）"
-    },
-    {
-      "n": "171",
-      "layer": "ui",
-      "basis": "def:hotkeys",
-      "title": "21. BF.hotkeys 快捷键"
-    },
-    {
-      "n": "172",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "22. 全局委托绑定"
-    },
-    {
-      "n": "173",
-      "layer": "ui",
-      "basis": "kw",
-      "title": "内置手册 / 帮助中心"
-    },
-    {
-      "n": "174",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "24. 模块注册"
-    },
-    {
-      "n": "175",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "25b. 增强层（V4，原生模块）"
-    },
-    {
-      "n": "176",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "25. 启动"
-    },
-    {
-      "n": "177",
-      "layer": "ui",
-      "basis": "def:taste",
-      "title": "18.55 BF.taste · 界面口味开关"
-    },
-    {
-      "n": "178",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "18.6 BF.agent · 代理内核"
-    },
-    {
-      "n": "179",
-      "layer": "ui",
-      "basis": "def:agent",
-      "title": "BF.agent START"
-    },
-    {
-      "n": "180",
-      "layer": "boot",
-      "basis": "kw",
-      "title": "BF.agent END"
-    }
-  ]
+  {
+   "n": "002",
+   "layer": "core",
+   "basis": "def:CONFIG",
+   "title": "全局可调常量（唯一实现）"
+  },
+  {
+   "n": "003",
+   "layer": "core",
+   "basis": "def:bus",
+   "title": "1. BF.bus 事件总线（副中枢）"
+  },
+  {
+   "n": "004",
+   "layer": "core",
+   "basis": "def:sync",
+   "title": "2b. BF.sync 跨标签页同步（数据面，仅广播 kind）"
+  },
+  {
+   "n": "005",
+   "layer": "core",
+   "basis": "def:log",
+   "title": "2. BF.log 日志门面"
+  },
+  {
+   "n": "006",
+   "layer": "core",
+   "basis": "def:err",
+   "title": "3. BF.err 错误边界 + 看门狗"
+  },
+  {
+   "n": "007",
+   "layer": "core",
+   "basis": "def:timers",
+   "title": "4. BF.timers 定时器管理器"
+  },
+  {
+   "n": "008",
+   "layer": "core",
+   "basis": "def:jobs",
+   "title": "4b. BF.jobs 任务注册表（进程中心）"
+  },
+  {
+   "n": "009",
+   "layer": "core",
+   "basis": "def:trace",
+   "title": "4c. BF.trace 启动时序"
+  },
+  {
+   "n": "010",
+   "layer": "core",
+   "basis": "def:caps",
+   "title": "4d. BF.caps 能力检测"
+  },
+  {
+   "n": "011",
+   "layer": "core",
+   "basis": "def:fsync",
+   "title": "4e. BF.fsync · OPFS 文件系统抽象"
+  },
+  {
+   "n": "012",
+   "layer": "core",
+   "basis": "def:snap",
+   "title": "4f. BF.snap · 快照层（OPFS，独立逻辑分区）"
+  },
+  {
+   "n": "013",
+   "layer": "core",
+   "basis": "def:store",
+   "title": "5. BF.store 存储门面"
+  },
+  {
+   "n": "014",
+   "layer": "core",
+   "basis": "inherit",
+   "title": "写入健康计数（可靠性三档·第③档）"
+  },
+  {
+   "n": "015",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "腾退阶梯（可靠性三档·第①档）"
+  },
+  {
+   "n": "016",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "P4b 腾退「搬迁档」（先搬后删，R-10）"
+  },
+  {
+   "n": "017",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "读改写原子化：消除 books_meta 等键的「读→改→写」竞争"
+  },
+  {
+   "n": "018",
+   "layer": "core",
+   "basis": "def:state",
+   "title": "6. BF.state 状态机"
+  },
+  {
+   "n": "019",
+   "layer": "core",
+   "basis": "def:sheet,v3Scrim",
+   "title": "7. BF.sheet 容器基类"
+  },
+  {
+   "n": "020",
+   "layer": "boot",
+   "basis": "def:modules",
+   "title": "8. BF.modules 模块注册表"
+  },
+  {
+   "n": "021",
+   "layer": "core",
+   "basis": "def:commands",
+   "title": "9. BF.commands 命令系统"
+  },
+  {
+   "n": "022",
+   "layer": "core",
+   "basis": "inherit",
+   "title": "10. 全局事件委托"
+  },
+  {
+   "n": "023",
+   "layer": "core",
+   "basis": "def:prefs",
+   "title": "11b. BF.prefs 随书偏好"
+  },
+  {
+   "n": "024",
+   "layer": "core",
+   "basis": "def:settings",
+   "title": "11. BF.settings 设置门面"
+  },
+  {
+   "n": "025",
+   "layer": "core",
+   "basis": "def:dom",
+   "title": "12. BF.dom 工具"
+  },
+  {
+   "n": "026",
+   "layer": "core",
+   "basis": "def:appState,app",
+   "title": "13. 应用状态 + 导航"
+  },
+  {
+   "n": "027",
+   "layer": "core",
+   "basis": "def:shell",
+   "title": "13.5 BF.shell 全局骨架（TabBar + 右抽屉）"
+  },
+  {
+   "n": "028",
+   "layer": "ui",
+   "basis": "def:notesTab",
+   "title": "13.5b 笔记 Tab 聚合渲染"
+  },
+  {
+   "n": "029",
+   "layer": "ui",
+   "basis": "def:mineTab",
+   "title": "13.5c 我的 Tab 渲染"
+  },
+  {
+   "n": "030",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "13.6 外观登记表（单入口，主题 ∪ 模式合并）"
+  },
+  {
+   "n": "031",
+   "layer": "ui",
+   "basis": "def:YEHANG_TOKENS,SKIN_TOKENS,skin",
+   "title": "实验色板：夜航"
+  },
+  {
+   "n": "032",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "14. 外观应用（BF.theme 为兼容面）"
+  },
+  {
+   "n": "033",
+   "layer": "ui",
+   "basis": "def:BW_LIGHT_TOKENS,theme",
+   "title": "黑白简约模式（实验 · bwMode）灰度令牌"
+  },
+  {
+   "n": "034",
+   "layer": "ui",
+   "basis": "def:qj",
+   "title": "14b. 曲径（实验界面 · qjMode）：多驿站式接管界面"
+  },
+  {
+   "n": "035",
+   "layer": "core",
+   "basis": "def:util",
+   "title": "15. 首页"
+  },
+  {
+   "n": "036",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "16. 书架"
+  },
+  {
+   "n": "037",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "骨架屏 API"
+  },
+  {
+   "n": "038",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "自绘下拉"
+  },
+  {
+   "n": "039",
+   "layer": "domain",
+   "basis": "def:shelf",
+   "title": "G1. 书架分组（Collection）"
+  },
+  {
+   "n": "040",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "书卡动作登记表"
+  },
+  {
+   "n": "041",
+   "layer": "core",
+   "basis": "def:trash",
+   "title": "17. 书架辅助动作"
+  },
+  {
+   "n": "042",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "18. 阅读器路由（转发到 BF.reader 域）"
+  },
+  {
+   "n": "043",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L1. 编码探测"
+  },
+  {
+   "n": "044",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L2. 分章规则"
+  },
+  {
+   "n": "045",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "正文层字节级快照 / 复原"
+  },
+  {
+   "n": "046",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "L3. 文件名清洗"
+  },
+  {
+   "n": "047",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "L4. 导入主流程"
+  },
+  {
+   "n": "048",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "把轻量阅读进度（bf_reading_state）合并进 books_meta 数组供渲染"
+  },
+  {
+   "n": "049",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L1. 读取章节文本"
+  },
+  {
+   "n": "050",
+   "layer": "core",
+   "basis": "def:lz",
+   "title": "压缩（真 gzip 优先，base64 兜底；异步 API）"
+  },
+  {
+   "n": "051",
+   "layer": "core",
+   "basis": "inherit",
+   "title": "SVG 图标库（BF.ui.ic）：全站图标统一用内联 SVG，替换 emoji"
+  },
+  {
+   "n": "052",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L6b. 章节入库（三处导入通道共用）"
+  },
+  {
+   "n": "053",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L7. 下载"
+  },
+  {
+   "n": "054",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L5b. 统一另存为（导出端 FSA 优先，降级 <a download>）"
+  },
+  {
+   "n": "055",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L8. 导入进度 UI"
+  },
+  {
+   "n": "056",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "L9. 拖拽导入（只有样式无事件，北风补真实现）"
+  },
+  {
+   "n": "057",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L10. 剪贴板导入"
+  },
+  {
+   "n": "058",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "L11. URL 导入"
+  },
+  {
+   "n": "059",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "L12b. 跨书正文搜索"
+  },
+  {
+   "n": "060",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "搜索的共用骨架（书内 searchAll 与跨书 searchAcrossBooks 同一份实现"
+  },
+  {
+   "n": "061",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "L12. 标签系统"
+  },
+  {
+   "n": "062",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "阅读器状态"
+  },
+  {
+   "n": "063",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "R2. 打开书籍"
+  },
+  {
+   "n": "064",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "R3. 三路径渲染"
+  },
+  {
+   "n": "065",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "R4. 排版应用"
+  },
+  {
+   "n": "066",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "R5. 进度"
+  },
+  {
+   "n": "067",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "本书回顾卡（C4/FS-6）：末章读完的成果物"
+  },
+  {
+   "n": "068",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "R6. 导航"
+  },
+  {
+   "n": "069",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "微读模式：独立实现（R3/R4）"
+  },
+  {
+   "n": "070",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "微读浮层统一工厂 + 排版/目录/进度/自动隐藏"
+  },
+  {
+   "n": "071",
+   "layer": "core",
+   "basis": "def:nav",
+   "title": "导航历史（前进/后退阅读位置）"
+  },
+  {
+   "n": "072",
+   "layer": "core",
+   "basis": "inherit",
+   "title": "R7. 分页模式"
+  },
+  {
+   "n": "073",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "R8. 章节预取"
+  },
+  {
+   "n": "074",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "R9. 续读提示"
+  },
+  {
+   "n": "075",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "R10. 抽屉（目录/搜索/书签/笔记/生词/标注 6 tab）"
+  },
+  {
+   "n": "076",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "标注：高亮 / 批注 / 书签 / 生词"
+  },
+  {
+   "n": "077",
+   "layer": "core",
+   "basis": "def:cfi",
+   "title": "BF.cfi 轻量定位层（偏移唯一实现）"
+  },
+  {
+   "n": "078",
+   "layer": "domain",
+   "basis": "def:ann",
+   "title": "W3C Web Annotation 标注层（BF.ann，C5）"
+  },
+  {
+   "n": "079",
+   "layer": "domain",
+   "basis": "def:hlc",
+   "title": "R11.0b BF.hlc 轻量时钟"
+  },
+  {
+   "n": "080",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "R12. 选中工具条"
+  },
+  {
+   "n": "081",
+   "layer": "domain",
+   "basis": "def:findInPage",
+   "title": "R13. 查找（章内 Ctrl+F）"
+  },
+  {
+   "n": "082",
+   "layer": "core",
+   "basis": "def:stats",
+   "title": "R14. 阅读统计埋点"
+  },
+  {
+   "n": "083",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "R15. 模块注册"
+  },
+  {
+   "n": "084",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "T1. 状态"
+  },
+  {
+   "n": "085",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "T2. 浏览器离线引擎"
+  },
+  {
+   "n": "086",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "多音字手动纠正"
+  },
+  {
+   "n": "087",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "读法规范化"
+  },
+  {
+   "n": "088",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T3. MiMo 引擎"
+  },
+  {
+   "n": "089",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T4. Edge 引擎（wss）"
+  },
+  {
+   "n": "090",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T12. 在线语音静默自检"
+  },
+  {
+   "n": "091",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "朗读稳定性核心"
+  },
+  {
+   "n": "092",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "17.0 引擎能力自述表（唯一一份）"
+  },
+  {
+   "n": "093",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T5. 路由"
+  },
+  {
+   "n": "094",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T6. 主朗读流程"
+  },
+  {
+   "n": "095",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T7. 在线引擎播放"
+  },
+  {
+   "n": "096",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "T8. 预合成缓存"
+  },
+  {
+   "n": "097",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "T8b. 跨会话朗读缓存（可选，默认关）"
+  },
+  {
+   "n": "098",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "T9. 控制"
+  },
+  {
+   "n": "099",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "T10. UI"
+  },
+  {
+   "n": "100",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "T11. 保活"
+  },
+  {
+   "n": "101",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "T12. 设置联动"
+  },
+  {
+   "n": "102",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "T13. 选区朗读"
+  },
+  {
+   "n": "103",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "T14. 初始化"
+  },
+  {
+   "n": "104",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "T15. 模块注册"
+  },
+  {
+   "n": "105",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "A1. Provider 列表"
+  },
+  {
+   "n": "106",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "结构化返回（tools 优先 → json_object → 纯文本兜底）"
+  },
+  {
+   "n": "107",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "A1b. 网络可达性与传输路由"
+  },
+  {
+   "n": "108",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "A1c. 本机转发器源码（页面里永不执行，只用于导出）"
+  },
+  {
+   "n": "109",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "北风工程模式（终端 beifeng666）"
+  },
+  {
+   "n": "110",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "A2. 网关：并发 + 熔断 + 重试 + 超时 + SSE"
+  },
+  {
+   "n": "111",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "A3. AI 密钥存储 + 启动锁（PIN）"
+  },
+  {
+   "n": "112",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "A4. 摘要缓存（LRU）"
+  },
+  {
+   "n": "113",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "A5. 研读 8 卡"
+  },
+  {
+   "n": "114",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "AI 智能路由层"
+  },
+  {
+   "n": "115",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "A6. 卡片执行"
+  },
+  {
+   "n": "116",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "A7. Agent 工具集（覆盖用户可操作能力域）+ Agent"
+  },
+  {
+   "n": "117",
+   "layer": "boot",
+   "basis": "inherit",
+   "title": "A8. 问书历史（最近 12 条）"
+  },
+  {
+   "n": "118",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "A8c. 多会话"
+  },
+  {
+   "n": "119",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "A8b. 问书对话导出"
+  },
+  {
+   "n": "120",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "C11 余量项：标注 Obsidian 回链导出"
+  },
+  {
+   "n": "121",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "A8b. 模型价格表与成本估算（#151）"
+  },
+  {
+   "n": "122",
+   "layer": "domain",
+   "basis": "inherit",
+   "title": "A9. 防剧透"
+  },
+  {
+   "n": "123",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "番茄钟"
+  },
+  {
+   "n": "124",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "环境背景动画"
+  },
+  {
+   "n": "125",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "白噪音"
+  },
+  {
+   "n": "126",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "阅读目标"
+  },
+  {
+   "n": "127",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "统计面板"
+  },
+  {
+   "n": "128",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "通知中心"
+  },
+  {
+   "n": "129",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "DSL 终端"
+  },
+  {
+   "n": "130",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "DSL 终端（终端式工作台）"
+  },
+  {
+   "n": "131",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "工具面板委托"
+  },
+  {
+   "n": "132",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "命令注册"
+  },
+  {
+   "n": "133",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "分区注册表"
+  },
+  {
+   "n": "134",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "场景预设"
+  },
+  {
+   "n": "135",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "扩展中心（pluginCenter）：设置页「插件」节"
+  },
+  {
+   "n": "136",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "分区实现"
+  },
+  {
+   "n": "137",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "语音分区的折叠 / 引擎联动（从分支合并，不改动其它分区）"
+  },
+  {
+   "n": "138",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "AI 预设操作"
+  },
+  {
+   "n": "139",
+   "layer": "ui",
+   "basis": "inherit",
+   "title": "快捷键自定义（重绑热键，存 hk_custom）"
+  },
+  {
+   "n": "140",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "版本快照（日志只描述能力现状，不记过程）"
+  },
+  {
+   "n": "141",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "设置面板委托"
+  },
+  {
+   "n": "142",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "D1. 备份系统"
+  },
+  {
+   "n": "143",
+   "layer": "domain",
+   "basis": "def:smart",
+   "title": "BF.smart 章节 / AI 路由层"
+  },
+  {
+   "n": "144",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "Worker 线程池（大文件分章离线计算）"
+  },
+  {
+   "n": "145",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "D2. 数据自愈"
+  },
+  {
+   "n": "146",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "运维台"
+  },
+  {
+   "n": "147",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "章节截图（canvas 生成卡片图）"
+  },
+  {
+   "n": "148",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "笔记导出 CSV / MD"
+  },
+  {
+   "n": "149",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "ZIP 打包器（无依赖，store 不压缩）"
+  },
+  {
+   "n": "150",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "导出全部书籍（TXT 逐个 / ZIP 打包）"
+  },
+  {
+   "n": "151",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "自包含包导出"
+  },
+  {
+   "n": "152",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "24b. 顶栏常驻状态"
+  },
+  {
+   "n": "153",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "自动滚动"
+  },
+  {
+   "n": "154",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "阅读器缩放（字号步进唯一实现）"
+  },
+  {
+   "n": "155",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "书籍信息弹窗（可编辑元数据）"
+  },
+  {
+   "n": "156",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "WK. 工坊（workshop）：文本制作书籍"
+  },
+  {
+   "n": "157",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "独立便签编辑器"
+  },
+  {
+   "n": "158",
+   "layer": "domain",
+   "basis": "def:base",
+   "title": "BB. 基地（base）：数据资产管理"
+  },
+  {
+   "n": "159",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "跨标签页同步"
+  },
+  {
+   "n": "160",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "OPFS 快照（不可用时降级）"
+  },
+  {
+   "n": "161",
+   "layer": "domain",
+   "basis": "kw",
+   "title": "工作区同步"
+  },
+  {
+   "n": "162",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "委托绑定（新增功能入口）"
+  },
+  {
+   "n": "163",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "通用更多菜单（带箭头，首页/书架/阅读器共用）"
+  },
+  {
+   "n": "164",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "快捷键补充（延至启动时绑定）"
+  },
+  {
+   "n": "165",
+   "layer": "ui",
+   "basis": "def:noti",
+   "title": "18. BF.noti 通知系统"
+  },
+  {
+   "n": "166",
+   "layer": "ui",
+   "basis": "def:feedback",
+   "title": "18b. BF.feedback 统一反馈"
+  },
+  {
+   "n": "167",
+   "layer": "ui",
+   "basis": "def:act",
+   "title": "18.5 BF.act 用户动作统一包装"
+  },
+  {
+   "n": "168",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "19. BF.ui 基础"
+  },
+  {
+   "n": "169",
+   "layer": "ui",
+   "basis": "def:modal,ask",
+   "title": "20. BF.modal Promise 模态框"
+  },
+  {
+   "n": "170",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "PIN 门禁（启动锁 / 敏感操作锁）"
+  },
+  {
+   "n": "171",
+   "layer": "ui",
+   "basis": "def:hotkeys",
+   "title": "21. BF.hotkeys 快捷键"
+  },
+  {
+   "n": "172",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "22. 全局委托绑定"
+  },
+  {
+   "n": "173",
+   "layer": "ui",
+   "basis": "kw",
+   "title": "内置手册 / 帮助中心"
+  },
+  {
+   "n": "174",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "24. 模块注册"
+  },
+  {
+   "n": "175",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "25b. 增强层（V4，原生模块）"
+  },
+  {
+   "n": "176",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "25. 启动"
+  },
+  {
+   "n": "177",
+   "layer": "ui",
+   "basis": "def:taste",
+   "title": "18.55 BF.taste · 界面口味开关"
+  },
+  {
+   "n": "178",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "18.6 BF.agent · 代理内核"
+  },
+  {
+   "n": "179",
+   "layer": "ui",
+   "basis": "def:agent",
+   "title": "BF.agent START"
+  },
+  {
+   "n": "180",
+   "layer": "boot",
+   "basis": "kw",
+   "title": "BF.agent END"
+  },
+  {
+   "n": "181",
+   "layer": "domain",
+   "basis": "def:epub",
+   "title": "L13. EPUB 导入（零依赖 zip 解包 + 纯文本抽取）"
+  }
+ ]
 }

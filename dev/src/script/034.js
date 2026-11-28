@@ -91,11 +91,11 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT →</span>' +
+          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT/EPUB →</span>' +
         '</div>';
 
     const quick = [
-      { cmd: 'import.txt', t: '导入 TXT', d: '本地文件' },
+      { cmd: 'import.txt', t: '导入 TXT/EPUB', d: '本地文件' },
       { cmd: 'import.clipboard', t: '剪贴板', d: '即贴即存' },
       { cmd: 'import.url', t: '网址', d: '抓取正文' },
       { cmd: 'across.open', t: '跨书检索', d: '全库找一句' },
@@ -177,7 +177,7 @@ BF.qj = (function () {
       '<div class="qj-shelfbar">' +
         '<input type="text" id="qj-shelf-q" placeholder="在书架里找一本书…" value="' + escAttr(shelfQ.q) + '" autocomplete="off" spellcheck="false">' +
         sortBtn('recent', '最近在读') + sortBtn('added', '最近导入') + sortBtn('title', '书名') +
-        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入 TXT</button>' +
+        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入 TXT/EPUB</button>' +
         '<span class="qj-shelfmeta">共 ' + n + ' 册' + (k ? ' · 命中 ' + bks.length : '') + '</span>' +
       '</div>' +
       '<div class="qj-tickets">' + tickets + '</div>';

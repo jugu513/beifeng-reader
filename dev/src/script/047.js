@@ -237,32 +237,56 @@ BF.library.importFile = async function (file, opts) {
   /* 读缓冲后检查中止（尚未解码，无状态需清理） */
   if (_aborted()) return { status: 'aborted' };
 
-  if (BF.app && BF.app.setImport) BF.app.setImport(2, '解码《' + name + '》…');
-  const histEnc = BF.library.encHistGet(rawName);
-  const dec = BF.library.decodeBuffer(buf, histEnc === 'auto' ? (BF.settings.get('encoding') || 'auto') : histEnc);
-  const text = dec.text, enc = dec.enc;
-  /* 空文件 / 纯空白文件不入库：
-     空 buffer 落到「解码失败」会误导：文件没坏，是空的；
-     纯空白则照常入库成"空书"，打开显示「本章内容读取失败」——
-     把「书本来就是空的」报成数据事故。两种都在源头拒绝、如实说原因。 */
-  if (!text || !text.trim()) {
-    BF.noti.warn('《' + name + '》没有可读正文（空文件或纯空白），已跳过');
-    return { status: 'empty' };
-  }
-  /* ③ 乱码 / 二进制判定：判据与 URL 通道共用 BF.library.garbleCheck（阈值、ESC 放宽、
-     是否拦下都由那一处定，见设置→解析）。不拦下时也要提示，别静默出一本乱码书。 */
-  const _g = BF.library.garbleCheck(text, '文件');
-  if (_g.blocked) throw new Error(_g.report);
-  if (_g.suspect) BF.library.garbleNotice(_g.report);
-  else if (dec.confident === false) BF.library.lowConfNotice(name, enc, dec);
-  /* 只记有把握的那次：把猜出来的编码写进历史，下次导入会把它当「首选」推到最前，
-     一次误判就此固化成永久误判。 */
-  if (dec.confident !== false) BF.library.encHistSet(rawName, enc);
-  if (BF.app && BF.app.setImport) BF.app.setImport(12, 'AI 分章《' + name + '》…');
-  if (BF.app && BF.app.setImport) BF.app.setImport(15, '分章中…');
+  /* EPUB 分流（L13）：zip 容器不进文本解码/乱码判据——那套判据是给纯文本定的，
+     套在二进制上只会把好书误报成乱码。解析失败如实报错，不产出半成品书。 */
+  let chapters = null;
+  let enc = '';
+  if (BF.epub && BF.epub.sniff(buf, rawName)) {
+    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 EPUB《' + name + '》…');
+    let ep = null;
+    try {
+      ep = await BF.epub.parse(buf);
+    } catch (eEP) {
+      BF.err.report('import.epub', eEP);
+      BF.noti.warn('《' + name + '》EPUB 解析失败：' + ((eEP && eEP.message) || eEP));
+      return { status: 'epubFail' };
+    }
+    chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+    if (!chapters.length) {
+      BF.noti.warn('《' + name + '》EPUB 没有可读正文，已跳过');
+      return { status: 'empty' };
+    }
+    enc = 'utf-8';
+    if (BF.app && BF.app.setImport) BF.app.setImport(35, '分章完成 · ' + chapters.length + ' 章');
+  } else {
+    if (BF.app && BF.app.setImport) BF.app.setImport(2, '解码《' + name + '》…');
+    const histEnc = BF.library.encHistGet(rawName);
+    const dec = BF.library.decodeBuffer(buf, histEnc === 'auto' ? (BF.settings.get('encoding') || 'auto') : histEnc);
+    const text = dec.text;
+    enc = dec.enc;
+    /* 空文件 / 纯空白文件不入库：
+       空 buffer 落到「解码失败」会误导：文件没坏，是空的；
+       纯空白则照常入库成"空书"，打开显示「本章内容读取失败」——
+       把「书本来就是空的」报成数据事故。两种都在源头拒绝、如实说原因。 */
+    if (!text || !text.trim()) {
+      BF.noti.warn('《' + name + '》没有可读正文（空文件或纯空白），已跳过');
+      return { status: 'empty' };
+    }
+    /* ③ 乱码 / 二进制判定：判据与 URL 通道共用 BF.library.garbleCheck（阈值、ESC 放宽、
+       是否拦下都由那一处定，见设置→解析）。不拦下时也要提示，别静默出一本乱码书。 */
+    const _g = BF.library.garbleCheck(text, '文件');
+    if (_g.blocked) throw new Error(_g.report);
+    if (_g.suspect) BF.library.garbleNotice(_g.report);
+    else if (dec.confident === false) BF.library.lowConfNotice(name, enc, dec);
+    /* 只记有把握的那次：把猜出来的编码写进历史，下次导入会把它当「首选」推到最前，
+       一次误判就此固化成永久误判。 */
+    if (dec.confident !== false) BF.library.encHistSet(rawName, enc);
+    if (BF.app && BF.app.setImport) BF.app.setImport(12, 'AI 分章《' + name + '》…');
+    if (BF.app && BF.app.setImport) BF.app.setImport(15, '分章中…');
 
-  /* 分章统一走 BF.smart.chapters（大文件自动切 Worker 线程池），只有这一个入口 */
-  const chapters = await BF.smart.chapters(text);
+    /* 分章统一走 BF.smart.chapters（大文件自动切 Worker 线程池），只有这一个入口 */
+    chapters = await BF.smart.chapters(text);
+  }
   /* 分章仅在内存、尚未持久化——
      取消即停，无中间态需清理 */
   if (_aborted()) return { status: 'aborted' };

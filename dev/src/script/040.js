@@ -286,7 +286,7 @@ BF.app.renderBookshelf = function (opts) {
 
   const addCard = '<div class="add-card" data-trigger-import>' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-    '<span class="t1">导入书籍</span><span class="t2">TXT · 拖拽或点击</span>' +
+    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB · 拖拽或点击</span>' +
     /* 这两个按钮必须收在导入卡内部：若作为 grid-column:1/-1 的整行元素
        插在网格中间，会把第一行书卡劈到第二行，多本书时整个网格从中间断开 */
     '<span style="display:flex;gap:6px;justify-content:center;margin-top:10px">' +

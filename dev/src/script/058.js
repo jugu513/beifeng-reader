@@ -63,30 +63,45 @@ BF.library.importURL = async function (url) {
     }
     if (_aborted()) return _abortExit();
     BF.app.setImport(40, '正在解析...');
-    /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
-    const ctype = String((res.headers && res.headers.get ? res.headers.get('content-type') : '') || '');
-    const csM = ctype.match(/charset=([\w-]+)/i);
-    const dec = BF.library.decodeBuffer(buf, csM ? csM[1].toUpperCase() : (BF.settings.get('encoding') || 'auto'));
-    const text = dec.text;
-    if (!text || !text.trim()) throw new Error('内容为空：该地址没有可读正文');
-    if (text.length < 100) throw new Error('内容过短');
-    const _g = BF.library.garbleCheck(text, '在线内容');
-    if (_g.blocked) throw new Error(_g.report);
     const srcName = decodeURIComponent(u.pathname.split('/').pop() || '') || u.hostname;
-    if (_g.suspect) BF.library.garbleNotice(_g.report);
-    else if (dec.confident === false) BF.library.lowConfNotice(srcName, dec.enc, dec);
-    /* 与文件通道同一条规矩：猜出来的编码不进历史，否则下次导入把它当首选固化 */
-    if (dec.confident !== false) BF.library.encHistSet(srcName, dec.enc || 'auto');
-    /* 分章走 BF.smart.chapters（大书自动进 Worker 线程池）：与文件通道同一个入口，
-       小书结果与 splitChapters 完全一致，大书不再卡主线程 */
-    const chapters = await BF.smart.chapters(text);
+    /* EPUB 分流（L13）：直链 .epub / PK 魔数走容器解析，不进文本解码与乱码判据——
+       与文件通道同一条规矩：失败就如实抛错，不产出半成品书。 */
+    let chapters = null;
+    let enc = '';
+    if (BF.epub && BF.epub.sniff(buf, srcName)) {
+      BF.app.setImport(45, '解析 EPUB...');
+      let ep = null;
+      try { ep = await BF.epub.parse(buf); }
+      catch (eEP) { throw new Error('EPUB 解析失败：' + ((eEP && eEP.message) || eEP)); }
+      chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+      if (!chapters.length) throw new Error('EPUB 没有可读正文');
+      enc = 'utf-8';
+    } else {
+      /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
+      const ctype = String((res.headers && res.headers.get ? res.headers.get('content-type') : '') || '');
+      const csM = ctype.match(/charset=([\w-]+)/i);
+      const dec = BF.library.decodeBuffer(buf, csM ? csM[1].toUpperCase() : (BF.settings.get('encoding') || 'auto'));
+      const text = dec.text;
+      if (!text || !text.trim()) throw new Error('内容为空：该地址没有可读正文');
+      if (text.length < 100) throw new Error('内容过短');
+      const _g = BF.library.garbleCheck(text, '在线内容');
+      if (_g.blocked) throw new Error(_g.report);
+      if (_g.suspect) BF.library.garbleNotice(_g.report);
+      else if (dec.confident === false) BF.library.lowConfNotice(srcName, dec.enc, dec);
+      /* 与文件通道同一条规矩：猜出来的编码不进历史，否则下次导入把它当首选固化 */
+      if (dec.confident !== false) BF.library.encHistSet(srcName, dec.enc || 'auto');
+      /* 分章走 BF.smart.chapters（大书自动进 Worker 线程池）：与文件通道同一个入口，
+         小书结果与 splitChapters 完全一致，大书不再卡主线程 */
+      chapters = await BF.smart.chapters(text);
+      enc = dec.enc || '';
+    }
     if (_aborted()) return _abortExit();
-    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.txt$/i, ''));
+    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(txt|epub)$/i, ''));
     const id = BF.library.newBookId();
     const book = {
       id, title: name, size: buf.byteLength, importedAt: Date.now(),
       totalChapters: chapters.length, currentChapter: 0, lastRead: null,
-      starred: false, tags: [], enc: dec.enc || '', src: 'url',
+      starred: false, tags: [], enc: enc, src: 'url',
       wordCount: chapters.reduce((s, c) => s + (c.content || '').length, 0),
       chapterWords: chapters.map(c => (c.content || '').length),  /* 每章字数 */
     };

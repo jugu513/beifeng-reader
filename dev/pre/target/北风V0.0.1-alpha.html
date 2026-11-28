@@ -5450,7 +5450,7 @@ body.a-line .noti-card {
     <div class="home-right">
       <div>
         <div class="section-title">最近在读</div>
-        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import="">导入 TXT</button></div></div>
+        <div class="recent-scroll" id="recent-scroll"><div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import="">导入 TXT/EPUB</button></div></div>
       </div>
       <div>
         <div class="daily-quote" id="daily-quote">“读书破万卷，下笔如有神。”<div class="source">—— 杜甫</div></div>
@@ -5563,13 +5563,13 @@ body.a-line .noti-card {
     </div>
     <div class="books-grid grid" id="books-grid"></div>
     <!-- 浮动导入按钮（仅书架页可见，CSS 控制悬浮位置） -->
-    <button class="bf-fab" id="bf-fab-import" data-trigger-import="" title="导入 TXT / 剪贴板 / 网址" aria-label="导入书籍">
+    <button class="bf-fab" id="bf-fab-import" data-trigger-import="" title="导入 TXT / EPUB / 剪贴板 / 网址" aria-label="导入书籍">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 5v14M5 12h14"/>
       </svg>
     </button>
   </div>
-  <input type="file" id="file-input" accept=".txt,.text,.json" multiple="" style="display:none" data-file-input="">
+  <input type="file" id="file-input" accept=".txt,.text,.json,.epub" multiple="" style="display:none" data-file-input="">
 </div>
 
 <!-- ===== NOTES（笔记 Tab 聚合首页）===== -->
@@ -11484,11 +11484,11 @@ BF.qj = (function () {
           '<span class="qj-continue__go">继 续</span>' +
         '</div>'
       : '<div class="qj-panel qj-continue qj-continue--empty" data-qj-cmd="import.txt" role="button" tabindex="0">' +
-          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT →</span>' +
+          '<b>还没有在读的书</b><span>从书架挑一本，或直接导入 TXT/EPUB →</span>' +
         '</div>';
 
     const quick = [
-      { cmd: 'import.txt', t: '导入 TXT', d: '本地文件' },
+      { cmd: 'import.txt', t: '导入 TXT/EPUB', d: '本地文件' },
       { cmd: 'import.clipboard', t: '剪贴板', d: '即贴即存' },
       { cmd: 'import.url', t: '网址', d: '抓取正文' },
       { cmd: 'across.open', t: '跨书检索', d: '全库找一句' },
@@ -11570,7 +11570,7 @@ BF.qj = (function () {
       '<div class="qj-shelfbar">' +
         '<input type="text" id="qj-shelf-q" placeholder="在书架里找一本书…" value="' + escAttr(shelfQ.q) + '" autocomplete="off" spellcheck="false">' +
         sortBtn('recent', '最近在读') + sortBtn('added', '最近导入') + sortBtn('title', '书名') +
-        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入 TXT</button>' +
+        '<button class="qj-qbtn" data-qj-cmd="import.txt">＋ 导入 TXT/EPUB</button>' +
         '<span class="qj-shelfmeta">共 ' + n + ' 册' + (k ? ' · 命中 ' + bks.length : '') + '</span>' +
       '</div>' +
       '<div class="qj-tickets">' + tickets + '</div>';
@@ -11986,7 +11986,7 @@ BF.app.renderHome = function () {
   const rc = document.getElementById('recent-scroll');
   if (rc) {
     if (!recent.length) {
-      rc.innerHTML = '<div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import>导入 TXT</button></div>';
+      rc.innerHTML = '<div class="recent-empty">暂无阅读记录，从书架选一本书开始，或按 Ctrl+O 导入新书<button class="btn btn-xs" data-trigger-import>导入 TXT/EPUB</button></div>';
     } else {
       rc.innerHTML = recent.map(BF.app.recentCardHTML).join('');
     }
@@ -13004,7 +13004,7 @@ BF.app.renderBookshelf = function (opts) {
 
   const addCard = '<div class="add-card" data-trigger-import>' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-    '<span class="t1">导入书籍</span><span class="t2">TXT · 拖拽或点击</span>' +
+    '<span class="t1">导入书籍</span><span class="t2">TXT/EPUB · 拖拽或点击</span>' +
     /* 这两个按钮必须收在导入卡内部：若作为 grid-column:1/-1 的整行元素
        插在网格中间，会把第一行书卡劈到第二行，多本书时整个网格从中间断开 */
     '<span style="display:flex;gap:6px;justify-content:center;margin-top:10px">' +
@@ -15207,32 +15207,56 @@ BF.library.importFile = async function (file, opts) {
   /* 读缓冲后检查中止（尚未解码，无状态需清理） */
   if (_aborted()) return { status: 'aborted' };
 
-  if (BF.app && BF.app.setImport) BF.app.setImport(2, '解码《' + name + '》…');
-  const histEnc = BF.library.encHistGet(rawName);
-  const dec = BF.library.decodeBuffer(buf, histEnc === 'auto' ? (BF.settings.get('encoding') || 'auto') : histEnc);
-  const text = dec.text, enc = dec.enc;
-  /* 空文件 / 纯空白文件不入库：
-     空 buffer 落到「解码失败」会误导：文件没坏，是空的；
-     纯空白则照常入库成"空书"，打开显示「本章内容读取失败」——
-     把「书本来就是空的」报成数据事故。两种都在源头拒绝、如实说原因。 */
-  if (!text || !text.trim()) {
-    BF.noti.warn('《' + name + '》没有可读正文（空文件或纯空白），已跳过');
-    return { status: 'empty' };
-  }
-  /* ③ 乱码 / 二进制判定：判据与 URL 通道共用 BF.library.garbleCheck（阈值、ESC 放宽、
-     是否拦下都由那一处定，见设置→解析）。不拦下时也要提示，别静默出一本乱码书。 */
-  const _g = BF.library.garbleCheck(text, '文件');
-  if (_g.blocked) throw new Error(_g.report);
-  if (_g.suspect) BF.library.garbleNotice(_g.report);
-  else if (dec.confident === false) BF.library.lowConfNotice(name, enc, dec);
-  /* 只记有把握的那次：把猜出来的编码写进历史，下次导入会把它当「首选」推到最前，
-     一次误判就此固化成永久误判。 */
-  if (dec.confident !== false) BF.library.encHistSet(rawName, enc);
-  if (BF.app && BF.app.setImport) BF.app.setImport(12, 'AI 分章《' + name + '》…');
-  if (BF.app && BF.app.setImport) BF.app.setImport(15, '分章中…');
+  /* EPUB 分流（L13）：zip 容器不进文本解码/乱码判据——那套判据是给纯文本定的，
+     套在二进制上只会把好书误报成乱码。解析失败如实报错，不产出半成品书。 */
+  let chapters = null;
+  let enc = '';
+  if (BF.epub && BF.epub.sniff(buf, rawName)) {
+    if (BF.app && BF.app.setImport) BF.app.setImport(8, '解析 EPUB《' + name + '》…');
+    let ep = null;
+    try {
+      ep = await BF.epub.parse(buf);
+    } catch (eEP) {
+      BF.err.report('import.epub', eEP);
+      BF.noti.warn('《' + name + '》EPUB 解析失败：' + ((eEP && eEP.message) || eEP));
+      return { status: 'epubFail' };
+    }
+    chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+    if (!chapters.length) {
+      BF.noti.warn('《' + name + '》EPUB 没有可读正文，已跳过');
+      return { status: 'empty' };
+    }
+    enc = 'utf-8';
+    if (BF.app && BF.app.setImport) BF.app.setImport(35, '分章完成 · ' + chapters.length + ' 章');
+  } else {
+    if (BF.app && BF.app.setImport) BF.app.setImport(2, '解码《' + name + '》…');
+    const histEnc = BF.library.encHistGet(rawName);
+    const dec = BF.library.decodeBuffer(buf, histEnc === 'auto' ? (BF.settings.get('encoding') || 'auto') : histEnc);
+    const text = dec.text;
+    enc = dec.enc;
+    /* 空文件 / 纯空白文件不入库：
+       空 buffer 落到「解码失败」会误导：文件没坏，是空的；
+       纯空白则照常入库成"空书"，打开显示「本章内容读取失败」——
+       把「书本来就是空的」报成数据事故。两种都在源头拒绝、如实说原因。 */
+    if (!text || !text.trim()) {
+      BF.noti.warn('《' + name + '》没有可读正文（空文件或纯空白），已跳过');
+      return { status: 'empty' };
+    }
+    /* ③ 乱码 / 二进制判定：判据与 URL 通道共用 BF.library.garbleCheck（阈值、ESC 放宽、
+       是否拦下都由那一处定，见设置→解析）。不拦下时也要提示，别静默出一本乱码书。 */
+    const _g = BF.library.garbleCheck(text, '文件');
+    if (_g.blocked) throw new Error(_g.report);
+    if (_g.suspect) BF.library.garbleNotice(_g.report);
+    else if (dec.confident === false) BF.library.lowConfNotice(name, enc, dec);
+    /* 只记有把握的那次：把猜出来的编码写进历史，下次导入会把它当「首选」推到最前，
+       一次误判就此固化成永久误判。 */
+    if (dec.confident !== false) BF.library.encHistSet(rawName, enc);
+    if (BF.app && BF.app.setImport) BF.app.setImport(12, 'AI 分章《' + name + '》…');
+    if (BF.app && BF.app.setImport) BF.app.setImport(15, '分章中…');
 
-  /* 分章统一走 BF.smart.chapters（大文件自动切 Worker 线程池），只有这一个入口 */
-  const chapters = await BF.smart.chapters(text);
+    /* 分章统一走 BF.smart.chapters（大文件自动切 Worker 线程池），只有这一个入口 */
+    chapters = await BF.smart.chapters(text);
+  }
   /* 分章仅在内存、尚未持久化——
      取消即停，无中间态需清理 */
   if (_aborted()) return { status: 'aborted' };
@@ -16203,9 +16227,9 @@ BF.app.closeImport = function () {
     _dragDepth = 0;
     const card = document.querySelector('.add-card');
     if (card) card.classList.remove('dragover');
-    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json)$/i.test(f.name));
+    const files = [...(e.dataTransfer && e.dataTransfer.files || [])].filter(f => /\.(?:txt|text|json|epub)$/i.test(f.name));
     if (files.length) BF.library.importFiles(files);
-    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT 文件');
+    else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) BF.noti.warn('仅支持 TXT / EPUB 文件');
   });
 })();
 
@@ -16362,30 +16386,45 @@ BF.library.importURL = async function (url) {
     }
     if (_aborted()) return _abortExit();
     BF.app.setImport(40, '正在解析...');
-    /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
-    const ctype = String((res.headers && res.headers.get ? res.headers.get('content-type') : '') || '');
-    const csM = ctype.match(/charset=([\w-]+)/i);
-    const dec = BF.library.decodeBuffer(buf, csM ? csM[1].toUpperCase() : (BF.settings.get('encoding') || 'auto'));
-    const text = dec.text;
-    if (!text || !text.trim()) throw new Error('内容为空：该地址没有可读正文');
-    if (text.length < 100) throw new Error('内容过短');
-    const _g = BF.library.garbleCheck(text, '在线内容');
-    if (_g.blocked) throw new Error(_g.report);
     const srcName = decodeURIComponent(u.pathname.split('/').pop() || '') || u.hostname;
-    if (_g.suspect) BF.library.garbleNotice(_g.report);
-    else if (dec.confident === false) BF.library.lowConfNotice(srcName, dec.enc, dec);
-    /* 与文件通道同一条规矩：猜出来的编码不进历史，否则下次导入把它当首选固化 */
-    if (dec.confident !== false) BF.library.encHistSet(srcName, dec.enc || 'auto');
-    /* 分章走 BF.smart.chapters（大书自动进 Worker 线程池）：与文件通道同一个入口，
-       小书结果与 splitChapters 完全一致，大书不再卡主线程 */
-    const chapters = await BF.smart.chapters(text);
+    /* EPUB 分流（L13）：直链 .epub / PK 魔数走容器解析，不进文本解码与乱码判据——
+       与文件通道同一条规矩：失败就如实抛错，不产出半成品书。 */
+    let chapters = null;
+    let enc = '';
+    if (BF.epub && BF.epub.sniff(buf, srcName)) {
+      BF.app.setImport(45, '解析 EPUB...');
+      let ep = null;
+      try { ep = await BF.epub.parse(buf); }
+      catch (eEP) { throw new Error('EPUB 解析失败：' + ((eEP && eEP.message) || eEP)); }
+      chapters = (ep.chapters || []).filter(function (c) { return c && String(c.content || '').trim(); });
+      if (!chapters.length) throw new Error('EPUB 没有可读正文');
+      enc = 'utf-8';
+    } else {
+      /* 编码：响应头 charset 优先，其余交给文件通道那套 BOM / 严格 UTF-8 / GB18030 / GBK / Big5 打分 */
+      const ctype = String((res.headers && res.headers.get ? res.headers.get('content-type') : '') || '');
+      const csM = ctype.match(/charset=([\w-]+)/i);
+      const dec = BF.library.decodeBuffer(buf, csM ? csM[1].toUpperCase() : (BF.settings.get('encoding') || 'auto'));
+      const text = dec.text;
+      if (!text || !text.trim()) throw new Error('内容为空：该地址没有可读正文');
+      if (text.length < 100) throw new Error('内容过短');
+      const _g = BF.library.garbleCheck(text, '在线内容');
+      if (_g.blocked) throw new Error(_g.report);
+      if (_g.suspect) BF.library.garbleNotice(_g.report);
+      else if (dec.confident === false) BF.library.lowConfNotice(srcName, dec.enc, dec);
+      /* 与文件通道同一条规矩：猜出来的编码不进历史，否则下次导入把它当首选固化 */
+      if (dec.confident !== false) BF.library.encHistSet(srcName, dec.enc || 'auto');
+      /* 分章走 BF.smart.chapters（大书自动进 Worker 线程池）：与文件通道同一个入口，
+         小书结果与 splitChapters 完全一致，大书不再卡主线程 */
+      chapters = await BF.smart.chapters(text);
+      enc = dec.enc || '';
+    }
     if (_aborted()) return _abortExit();
-    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.txt$/i, ''));
+    const name = BF.library.cleanName(decodeURIComponent(u.pathname.split('/').pop() || '在线书籍').replace(/\.(txt|epub)$/i, ''));
     const id = BF.library.newBookId();
     const book = {
       id, title: name, size: buf.byteLength, importedAt: Date.now(),
       totalChapters: chapters.length, currentChapter: 0, lastRead: null,
-      starred: false, tags: [], enc: dec.enc || '', src: 'url',
+      starred: false, tags: [], enc: enc, src: 'url',
       wordCount: chapters.reduce((s, c) => s + (c.content || '').length, 0),
       chapterWords: chapters.map(c => (c.content || '').length),  /* 每章字数 */
     };
@@ -28931,14 +28970,14 @@ BF.ai.tools = {
     catch (e) { return '重新分章失败：' + (e && e.message || e); }
   },
   /* ---- 组4 导入 / 导出 / 备份：异步一律 await，回执说真实结果 ---- */
-  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT 文件；原生选择器可能要求用户手势）'; },
+  importFile: function () { BF.library.pickAndImport(); return '已触发导入文件选择（需用户选择 TXT/EPUB 文件；原生选择器可能要求用户手势）'; },
   importClipboard: async function () {
     try { await BF.library.importClipboard(); return '已触发剪贴板导入（结果以界面通知为准）'; }
     catch (e) { return '剪贴板导入失败：' + (e && e.message || e); }
   },
   importURL: async function (url) {
     const u = String(url || '').trim();
-    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT 直链';
+    if (!/^https?:\/\//i.test(u)) return '请给出 http(s) 开头的 TXT/EPUB 直链';
     try { await BF.library.importURL(u); return '已触发在线导入：' + u + '（结果以界面通知为准）'; }
     catch (e) { return '在线导入失败：' + (e && e.message || e); }
   },
@@ -38869,9 +38908,9 @@ BF.settingsUI.UPDATE_LOG = [
         '配色均达到 WCAG AA 对比度标准；四套场景预设：沉浸阅读 / 深夜护眼 / 纸感浅色 / 紧凑速读',
       ]},
       { name: '数据', items: [
-        '导入 TXT：本地文件 / 剪贴板 / 网址，编码自动识别；书架支持搜索、排序、置顶、收藏、标签，书卡上的快捷按钮可自选（最多三枚）',
+        '导入 TXT/EPUB：本地文件 / 剪贴板 / 网址（EPUB 支持本地与直链），编码自动识别，EPUB 提取纯文本与目录；书架支持搜索、排序、置顶、收藏、标签，书卡上的快捷按钮可自选（最多三枚）',
         '本地单个文件上限 64MB：超过就明说并跳过，不再让整页冻住',
-        '导入过程分阶段报进度：解码 → 分章 → 逐章写入，单本大书也不再全程停在 0%',
+        '导入过程分阶段报进度：解码或 EPUB 解析 → 分章 → 逐章写入，单本大书也不再全程停在 0%',
         '书架记录读坏时不静默丢书：原文留副本、该项重置，并在「数据」页给出「从正文库恢复书架」——恢复出的书名取自各自第一章，字数无从还原的标「字数未知」',
         '不属于任何书的残留正文不大批自动删：量级过大时先在「数据」页列出段数与目录组数，人确认后才清理',
         '损坏隔离区（数据页）：被读坏的键逐条给出大小与进入时间，可整区导出（导出前剥掉密钥类字段，文件仍可能含敏感内容，别外发）或逐条清除',
@@ -48042,6 +48081,191 @@ if (document.readyState === 'loading') {
 /* 兜底：即使 boot 异常未走到 _hideSplash，6s 后也强制收起启动遮罩 */
 setTimeout(function(){ var s=document.getElementById('boot-splash'); if(s && !s.classList.contains('hide')){ s.classList.add('hide'); setTimeout(function(){ try{s.remove();}catch(e){} }, 420);} }, 6000);
 
+/* L13. EPUB 导入 —— 零依赖纯文本抽取。
+   链路：手解 zip（store + deflate-raw，解压用浏览器原生 DecompressionStream）
+   → META-INF/container.xml 定位 OPF → manifest/spine → 目录（EPUB3 nav 优先，NCX 回退）
+   → 逐章 XHTML 剥标签、解实体，产出 [{title, content}] 直接入现有入库管线。
+   取舍：不保图片不保排版——EPUB 的价值在结构（目录/章节），样式交给北风自己的排版引擎，
+   图片与 CSS 一律丢弃，正文是纯文本（与 TXT 导入同一条渲染路径，划线/朗读零适配）。
+   兼容：DecompressionStream('deflate-raw') 需 Chrome/Edge 103+、Firefox 113+、Safari 16.4+；
+   不支持时 parse 抛错，导入通道如实报「EPUB 解析失败」，不产出半成品书。 */
+BF.epub = {
+  sniff: function (buf, name) {
+    if (/\.epub$/i.test(String(name || ''))) return true;
+    return !!(buf && buf.length > 4 && buf[0] === 0x50 && buf[1] === 0x4b &&
+      (buf[2] === 3 || buf[2] === 5 || buf[2] === 7));
+  },
+
+  /* ── zip：从尾部找 EOCD → 遍历中央目录 → 按本地头切数据 ── */
+  _unzip: async function (bytes) {
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let eocd = -1;
+    const floor = Math.max(0, bytes.length - 22 - 65535);
+    for (let i = bytes.length - 22; i >= floor; i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('不是有效的 zip（找不到目录尾）');
+    const count = dv.getUint16(eocd + 10, true);
+    let p = dv.getUint32(eocd + 16, true);
+    const td = new TextDecoder('utf-8');
+    const files = {};
+    for (let n = 0; n < count; n++) {
+      if (p + 46 > bytes.length || dv.getUint32(p, true) !== 0x02014b50) throw new Error('zip 中央目录损坏');
+      const method = dv.getUint16(p + 10, true);
+      const csize = dv.getUint32(p + 20, true);
+      const nameLen = dv.getUint16(p + 28, true);
+      const extraLen = dv.getUint16(p + 30, true);
+      const cmtLen = dv.getUint16(p + 32, true);
+      const lho = dv.getUint32(p + 42, true);
+      const name = td.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+      if (lho + 30 > bytes.length || dv.getUint32(lho, true) !== 0x04034b50) throw new Error('zip 本地头损坏：' + name);
+      const start = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+      const comp = bytes.subarray(start, start + csize);
+      if (method === 0) files[name] = comp;
+      else if (method === 8) files[name] = await this._inflateRaw(comp);
+      else throw new Error('不支持的压缩方式 ' + method + '：' + name);
+      p += 46 + nameLen + extraLen + cmtLen;
+    }
+    return files;
+  },
+
+  _inflateRaw: function (bytes) {
+    const ds = new DecompressionStream('deflate-raw');
+    const stream = new Blob([bytes]).stream().pipeThrough(ds);
+    return new Response(stream).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
+  },
+
+  /* ── 路径归一：去 fragment、URL 解码、处理 ./ 与 ../ ── */
+  _resolve: function (base, href) {
+    let h = String(href || '').split('#')[0];
+    try { h = decodeURIComponent(h); } catch (e) { /* 坏编码就用原样 */ }
+    const out = [];
+    for (const seg of (base + h).split('/')) {
+      if (!seg || seg === '.') continue;
+      if (seg === '..') out.pop();
+      else out.push(seg);
+    }
+    return out.join('/');
+  },
+
+  /* ── 实体解码：命名实体 + 十进制/十六进制数字实体 ── */
+  _ent: function (s) {
+    const map = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+    return String(s).replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, function (all, m) {
+      if (m.charAt(0) === '#') {
+        const code = (m.charAt(1) === 'x' || m.charAt(1) === 'X') ? parseInt(m.slice(2), 16) : parseInt(m.slice(1), 10);
+        if (!isFinite(code) || code <= 0 || code > 0x10ffff) return all;
+        try { return String.fromCodePoint(code); } catch (e) { return all; }
+      }
+      return Object.prototype.hasOwnProperty.call(map, m) ? map[m] : all;
+    });
+  },
+
+  _clean: function (s) {
+    return this._ent(String(s).replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+  },
+
+  _attr: function (tag, name) {
+    const m = String(tag).match(new RegExp('\\b' + name + '\\s*=\\s*"([^"]*)"')) ||
+      String(tag).match(new RegExp('\\b' + name + "\\s*=\\s*'([^']*)'"));
+    return m ? m[1] : '';
+  },
+
+  /* ── XHTML → 纯文本：去脚本/样式/注释，块级标签换行，剥余下标签，解实体，压空白 ── */
+  _html2Text: function (html) {
+    let s = String(html);
+    s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ');
+    s = s.replace(/<style[\s\S]*?<\/style>/gi, ' ');
+    s = s.replace(/<!--[\s\S]*?-->/g, ' ');
+    s = s.replace(/<\/(?:p|div|h[1-6]|li|tr|blockquote|section|article|table)>/gi, '\n');
+    s = s.replace(/<br\s*\/?>/gi, '\n');
+    s = s.replace(/<[^>]+>/g, ' ');
+    s = this._ent(s);
+    return s.replace(/\r/g, '').split('\n')
+      .map(function (l) { return l.replace(/[ \t ]+/g, ' ').trim(); })
+      .filter(Boolean).join('\n').trim();
+  },
+
+  /* ── 主链路 ── */
+  parse: async function (bytes) {
+    if (!bytes || bytes.length < 4) throw new Error('文件为空');
+    const files = await this._unzip(bytes);
+    const cont = files['META-INF/container.xml'];
+    if (!cont) throw new Error('缺 META-INF/container.xml（不是 EPUB）');
+    const td = new TextDecoder('utf-8');
+    const contXml = td.decode(cont);
+    const opfPath = (contXml.match(/<rootfile[^>]*full-path="([^"]+)"/) || [])[1];
+    if (!opfPath || !files[opfPath]) throw new Error('缺 OPF 清单：' + (opfPath || '未声明 rootfile'));
+    const opf = td.decode(files[opfPath]);
+    const base = opfPath.indexOf('/') >= 0 ? opfPath.slice(0, opfPath.lastIndexOf('/') + 1) : '';
+    const title = this._clean((opf.match(/<dc:title[^>]*>([\s\S]*?)<\/dc:title>/) || [])[1] || '') ||
+      this._clean((opf.match(/<title[^>]*>([\s\S]*?)<\/title>/) || [])[1] || '');
+    const creator = this._clean((opf.match(/<dc:creator[^>]*>([\s\S]*?)<\/dc:creator>/) || [])[1] || '');
+
+    /* manifest：id → {href, type, props} */
+    const man = {};
+    const itemRe = /<item\b[^>]*\/?>/g;
+    let m;
+    while ((m = itemRe.exec(opf))) {
+      const id = this._attr(m[0], 'id');
+      const href = this._attr(m[0], 'href');
+      if (id && href) man[id] = { href: href, type: this._attr(m[0], 'media-type'), props: this._attr(m[0], 'properties') };
+    }
+    /* spine：阅读顺序；href 为绝对 URL 的条目跳过 */
+    const spine = [];
+    const sr = /<itemref\b[^>]*\/?>/g;
+    while ((m = sr.exec(opf))) {
+      const it = man[this._attr(m[0], 'idref')];
+      if (it && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(it.href)) spine.push(it);
+    }
+    if (!spine.length) throw new Error('OPF spine 为空');
+
+    /* 目录映射：相对路径（去 fragment）→ 标签。EPUB3 nav 优先，EPUB2 NCX 回退。 */
+    const tocMap = {};
+    const manList = Object.keys(man).map(function (k) { return man[k]; });
+    const navItem = manList.filter(function (i) { return /(^|\s)nav(\s|$)/.test(i.props); })[0];
+    const ncxId = (opf.match(/<spine[^>]*\btoc="([^"]+)"/) || [])[1];
+    const ncxItem = manList.filter(function (i) { return /dtbncx/.test(i.type); })[0] || (ncxId ? man[ncxId] : null);
+    const navPath = navItem ? this._resolve(base, navItem.href) : '';
+    const ncxPath = ncxItem ? this._resolve(base, ncxItem.href) : '';
+    if (navPath && files[navPath]) {
+      const xml = td.decode(files[navPath]);
+      const tb = navPath.slice(0, navPath.lastIndexOf('/') + 1);
+      const re = /<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+      while ((m = re.exec(xml))) {
+        const p = this._resolve(tb, m[1]);
+        if (files[p] && !tocMap[p]) tocMap[p] = this._clean(m[2]);
+      }
+    } else if (ncxPath && files[ncxPath]) {
+      const xml = td.decode(files[ncxPath]);
+      const tb = ncxPath.slice(0, ncxPath.lastIndexOf('/') + 1);
+      const re = /<navPoint[\s\S]*?<text>([\s\S]*?)<\/text>[\s\S]*?<content[^>]*src="([^"]+)"/g;
+      while ((m = re.exec(xml))) tocMap[this._resolve(tb, m[2])] = this._clean(m[1]);
+    }
+
+    /* 逐章抽取：spine 顺序，只取 html 类型；空章过滤；标题 = 目录标签 → 首个 h1-h3 → 序号 */
+    const chapters = [];
+    for (const it of spine) {
+      const isHtml = /html/.test(it.type) || /\.x?html$/i.test(it.href);
+      if (!isHtml) continue;
+      const path = this._resolve(base, it.href);
+      const data = files[path];
+      if (!data) continue;
+      const html = td.decode(data);
+      let text = this._html2Text(html);
+      if (!text) continue;
+      const head = (html.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/) || [])[1];
+      const cTitle = tocMap[path] || (head ? this._clean(head) : '') || ('第 ' + (chapters.length + 1) + ' 章');
+      /* 首行恰是标题（h1 抽出来的）就不在正文里留一份重复 */
+      const firstLine = text.split('\n')[0];
+      if (firstLine && firstLine.trim() === cTitle && text.indexOf('\n') > 0) text = text.slice(text.indexOf('\n') + 1);
+      chapters.push({ title: cTitle, content: text });
+    }
+    if (!chapters.length) throw new Error('没有可读章节');
+    return { title: title, creator: creator, chapters: chapters };
+  },
+};
+/* EPUB 段结束 */
 </script>
 
 <!-- ===== 全局底部 TabBar（5-Tab 骨架，笔记/我的 作为待填充页）===== -->

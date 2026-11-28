@@ -11,7 +11,7 @@
 ```
 src/index.template.html   ┐
 src/styles/01–09.css      ├─ build.mjs ─→ 北风V0.0.1-alpha.txt ─ deploy.mjs ─┬─ dev 根目录 .html
-src/script/000–180.js     ┘                                                  ├─ work/ 两份
+src/script/000–181.js     ┘                                                  ├─ work/ 两份
                                                                              ├─ pre/target/ 两份
                                                                              └─ 仓库根发布两份（北风V0.0.1-alpha.html + index.html）
 ```
@@ -31,8 +31,8 @@ src/script/000–180.js     ┘                                                 
 |---|---|---|
 | `index.template.html` | 页面骨架 | 所有页面的固定 HTML 都在这里，占位符之外的内容改这里 |
 | `styles/01–09.css` | 九块样式 | 按原 `<style>` 块顺序切的，每块对应模板里一个占位符 |
-| `script/000–180.js` | 181 段脚本 | 按分区注释切的，保持原执行顺序 |
-| `LAYERS.json` | 分层标注 | 把 181 段标成 core / domain / ui / boot，只是导航用的地图，不改代码 |
+| `script/000–181.js` | 182 段脚本 | 按分区注释切的，保持原执行顺序 |
+| `LAYERS.json` | 分层标注 | 把 182 段标成 core / domain / ui / boot，只是导航用的地图，不改代码 |
 
 分段和分层都不改变字节顺序——重排会破坏线性执行流。它们是给读代码的人看的地图，不是运行时机制。
 
